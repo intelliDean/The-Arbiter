@@ -1,0 +1,25 @@
+# Python (Agent)
+agent/venv/
+agent/__pycache__/
+agent/.env
+agent/*.pyc
+
+# Foundry (Contracts)
+contracts/out/
+contracts/cache/
+# contracts/lib/ # Uncomment if you want to ignore dependencies
+
+# Node / Vite (Frontend)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# IDEs & System
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
