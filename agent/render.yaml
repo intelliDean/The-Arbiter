@@ -1,0 +1,15 @@
+services:
+  - type: worker
+    name: arbiter-referee
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python referee.py
+    envVars:
+      - key: RPC_URL
+        value: https://testnet-rpc.monad.xyz
+      - key: CONTRACT_ADDRESS
+        value: 0xA658Fa34515794c1C38D5Beb7D412E11d50A141C
+      - key: PRIVATE_KEY
+        sync: false  # Set manually in Render dashboard for security
+      - key: REFEREE_ADDRESS
+        value: 0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
