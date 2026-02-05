@@ -172,3 +172,12 @@ contract Arena {
 
     receive() external payable {}
 }
+
+
+
+// Deployer: 0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
+// Deployed to: 0xA658Fa34515794c1C38D5Beb7D412E11d50A141C
+// Transaction hash: 0x3ffcee138ad57991422dd2ca8b2489884f502844b7d746770b5ff5da5891ecc6
+
+
+// cast call 0xA658Fa34515794c1C38D5Beb7D412E11d50A141C "owner()(address)" --rpc-url https://testnet-rpc.monad.xyz
