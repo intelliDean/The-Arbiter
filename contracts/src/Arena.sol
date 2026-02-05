@@ -11,13 +11,13 @@ contract Arena {
     address public owner;
     uint256 public nextMatchId;
     mapping(uint256 => Utils.Match) public matches;
-    
+
     // Fee System
     uint256 public constant FEE_BPS = 250; // 2.5%
     // Timeout Config
     uint256 public constant TIMEOUT = 24 hours;
     uint256 public totalFees;
-    
+
     // Pull Withdrawal Pattern
     mapping(address => uint256) public pendingWithdrawals;
 
@@ -111,7 +111,7 @@ contract Arena {
         if (amount == 0) revert Utils.NOTHING_TO_WITHDRAW();
 
         pendingWithdrawals[msg.sender] = 0;
-        (bool success, ) = msg.sender.call{value: amount}("");
+        (bool success,) = msg.sender.call{value: amount}("");
         if (!success) revert Utils.TRANSFER_FAILED();
 
         emit Utils.WinningsWithdrawn(msg.sender, amount);
@@ -128,7 +128,7 @@ contract Arena {
         m.status = Utils.MatchStatus.Cancelled;
         m.lastUpdate = block.timestamp;
 
-        (bool success, ) = m.creator.call{value: m.stake}("");
+        (bool success,) = m.creator.call{value: m.stake}("");
         if (!success) revert Utils.REFUND_FAILED();
 
         emit Utils.MatchCancelled(_matchId);
@@ -143,14 +143,14 @@ contract Arena {
         if (block.timestamp < m.lastUpdate + TIMEOUT) revert Utils.TIMEOUT_NOT_REACHED();
 
         m.status = Utils.MatchStatus.Cancelled;
-        
+
         uint256 amount = m.stake;
         address creator = m.creator;
         address opponent = m.opponent;
 
-        (bool s1, ) = creator.call{value: amount}("");
-        (bool s2, ) = opponent.call{value: amount}("");
-        
+        (bool s1,) = creator.call{value: amount}("");
+        (bool s2,) = opponent.call{value: amount}("");
+
         if (!s1 || !s2) revert Utils.REFUND_FAILED();
 
         emit Utils.EmergencyClaim(_matchId, creator, opponent);
@@ -164,7 +164,7 @@ contract Arena {
         if (amount == 0) revert Utils.NOTHING_TO_WITHDRAW();
 
         totalFees = 0;
-        (bool success, ) = owner.call{value: amount}("");
+        (bool success,) = owner.call{value: amount}("");
         if (!success) revert Utils.TRANSFER_FAILED();
 
         emit Utils.FeesWithdrawn(owner, amount);
