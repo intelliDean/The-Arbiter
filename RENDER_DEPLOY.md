@@ -1,68 +1,51 @@
-# Quick Render Deployment Guide
+# ✅ RENDER DEPLOYMENT - READY TO GO
 
-## Issues Fixed ✅
+## Critical Fixes Applied
 
-1. **ABI Loading Error** - Updated `referee.py` to load `Arena.json` from the same directory
-2. **Blueprint Error** - Moved `render.yaml` to repository root
+### 1. Service Type Error ❌→✅
+**Before:** Created "Web Service" (requires port binding)  
+**After:** Must create "Background Worker" (no port needed)
 
-## Deploy Now
+### 2. Event Filter Not Supported ❌→✅
+**Before:** Used `create_filter()` - Monad RPC doesn't support this  
+**After:** Uses block polling with `get_logs()` - Works with Monad!
 
-### Method 1: Direct Deployment (Recommended)
+## Deploy Steps (Follow Exactly)
 
-1. **Go to [render.com](https://render.com/dashboard)**
+### 1. Delete Old Service
+If you created a Web Service, delete it first.
 
-2. **Click "New +" → "Background Worker"**
+### 2. Create Background Worker
 
-3. **Connect Repository:**
-   - Connect GitHub
-   - Select: `Monad/Arbiter` (or your repo name)
+1. **Render Dashboard** → "New +" → **"Background Worker"** (NOT Web Service!)
+
+2. **Connect Repository:**
+   - GitHub repo: Your Arbiter repo
    - Branch: `main`
 
-4. **Configure Service:**
+3. **Service Configuration:**
    ```
    Name: arbiter-referee
    Region: Oregon (US West)
    Root Directory: agent
    Build Command: pip install -r requirements.txt
    Start Command: python referee.py
-   Instance Type: Free (or Starter for 24/7)
+   Instance Type: Free
    ```
 
-5. **Add Environment Variables:**
+4. **Environment Variables:**
    ```
    RPC_URL = https://testnet-rpc.monad.xyz
    CONTRACT_ADDRESS = 0xA658Fa34515794c1C38D5Beb7D412E11d50A141C
    REFEREE_ADDRESS = 0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
-   PRIVATE_KEY = <YOUR_PRIVATE_KEY>  ← Mark as "Secret"
+   PRIVATE_KEY = <YOUR_PRIVATE_KEY>
    ```
+   ⚠️ Mark `PRIVATE_KEY` as **Secret**
 
-6. **Click "Create Background Worker"**
+5. **Create Background Worker**
 
-### Method 2: Blueprint Deployment
+## Expected Output
 
-1. **Push to GitHub:**
-   ```bash
-   cd /mnt/data/Projects/Monad/Arbiter
-   git add .
-   git commit -m "Fix Render deployment configuration"
-   git push
-   ```
-
-2. **On Render:**
-   - Click "New +" → "Blueprint"
-   - Select your repository
-   - Render will find `render.yaml` in the root
-   - Click "Apply"
-
-3. **Set Private Key:**
-   - Go to your service → "Environment"
-   - Add `PRIVATE_KEY` manually
-   - Mark as secret
-   - Save
-
-## Verify Deployment
-
-After deployment, check logs for:
 ```
 ============================================================
 🤖 THE ARBITER - Autonomous Referee Agent
@@ -72,20 +55,47 @@ Referee: 0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
 Network: https://testnet-rpc.monad.xyz
 ============================================================
 👀 Monitoring blockchain for new matches...
+
+📦 Checking blocks 12345 to 12346...
 ```
 
-## Files Now in Place
+## How It Works Now
 
-✅ `agent/Arena.json` - Contract ABI (copied from build)
-✅ `agent/referee.py` - Updated to load local ABI
-✅ `agent/Procfile` - Render start command
-✅ `agent/runtime.txt` - Python version
-✅ `render.yaml` - Blueprint config (in root)
+The referee agent polls Monad testnet every 5 seconds:
+1. Gets current block number
+2. Fetches `MatchJoined` events from new blocks
+3. Simulates game outcome
+4. Settles match on-chain
+5. Tracks processed matches to avoid duplicates
 
 ## Test It
 
-1. Deploy on Render
-2. Open frontend: `cd frontend && npm run dev`
-3. Create a match
-4. Join with another wallet
-5. Watch Render logs for settlement!
+1. **Deploy on Render** (as Background Worker)
+2. **Check logs** - Should show "Monitoring blockchain..."
+3. **Create match** on frontend
+4. **Join match** with different wallet
+5. **Watch Render logs** - Should detect event and settle!
+
+## Files Ready
+
+✅ `agent/referee.py` - Block polling (Monad compatible)  
+✅ `agent/Arena.json` - Contract ABI  
+✅ `agent/Procfile` - Start command  
+✅ `agent/runtime.txt` - Python 3.11  
+✅ `agent/requirements.txt` - Dependencies  
+✅ `render.yaml` - Blueprint config (root)
+
+## Push to GitHub (Optional)
+
+```bash
+cd /mnt/data/Projects/Monad/Arbiter
+git add .
+git commit -m "Fix Render deployment - use block polling"
+git push
+```
+
+Then use Blueprint deployment on Render.
+
+---
+
+**Ready to deploy!** 🚀 Just make sure to select **Background Worker**, not Web Service.

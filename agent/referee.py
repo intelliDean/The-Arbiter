@@ -92,24 +92,71 @@ def handle_match_joined(event):
     print(f"   Creator: {creator}")
     print(f"   Stake: {w3.from_wei(stake, 'ether')} ETH")
     
-    # Simulate the game
-    winner = simulate_game_outcome(creator, opponent)
-    
-    # Settle the match
-    settle_match(match_id, winner)
-
-def log_loop(event_filter, poll_interval):
+def poll_for_matches(poll_interval=5):
     """
-    Continuously poll for new events.
+    Poll for new matches by checking recent blocks.
+    Monad RPC doesn't support eth_newFilter, so we use block polling.
     """
     print("👀 Monitoring blockchain for new matches...\n")
+    
+    # Track processed matches to avoid duplicate settlements
+    processed_matches = set()
+    last_block = w3.eth.block_number
+    
     while True:
         try:
-            for event in event_filter.get_new_entries():
-                handle_match_joined(event)
+            current_block = w3.eth.block_number
+            
+            # Check if there are new blocks
+            if current_block > last_block:
+                print(f"📦 Checking blocks {last_block + 1} to {current_block}...")
+                
+                # Get MatchJoined events from recent blocks
+                try:
+                    events = contract.events.MatchJoined.get_logs(
+                        fromBlock=last_block + 1,
+                        toBlock=current_block
+                    )
+                    
+                    for event in events:
+                        match_id = event['args']['matchId']
+                        
+                        # Skip if already processed
+                        if match_id in processed_matches:
+                            continue
+                        
+                        opponent = event['args']['opponent']
+                        print(f"\n🔔 Match Joined Event Detected!")
+                        print(f"   Match ID: {match_id}")
+                        print(f"   Opponent: {opponent}")
+                        
+                        # Fetch match details
+                        match_data = contract.functions.matches(match_id).call()
+                        creator = match_data[1]
+                        stake = match_data[3]
+                        
+                        print(f"   Creator: {creator}")
+                        print(f"   Stake: {w3.from_wei(stake, 'ether')} MON")
+                        
+                        # Simulate the game
+                        winner = simulate_game_outcome(creator, opponent)
+                        
+                        # Settle the match
+                        settle_match(match_id, winner)
+                        
+                        # Mark as processed
+                        processed_matches.add(match_id)
+                        
+                except Exception as e:
+                    print(f"⚠️  Error fetching events: {e}")
+                
+                last_block = current_block
+            
+            time.sleep(poll_interval)
+            
         except Exception as e:
-            print(f"⚠️  Error processing event: {e}")
-        time.sleep(poll_interval)
+            print(f"⚠️  Error in polling loop: {e}")
+            time.sleep(poll_interval)
 
 def main():
     print("=" * 60)
@@ -120,11 +167,8 @@ def main():
     print(f"Network: {RPC_URL}")
     print("=" * 60)
     
-    # Create event filter for MatchJoined
-    event_filter = contract.events.MatchJoined.create_filter(fromBlock='latest')
-    
-    # Start monitoring
-    log_loop(event_filter, 2)
+    # Start polling for matches
+    poll_for_matches(poll_interval=5)
 
 if __name__ == "__main__":
     main()
