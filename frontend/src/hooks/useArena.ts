@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { BrowserProvider, Contract, parseEther, formatEther } from 'ethers';
+import { Contract, parseEther, formatEther, BrowserProvider, JsonRpcSigner } from 'ethers';
+import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { ARENA_CONTRACT_ADDRESS, ARENA_ABI, REFEREE_ADDRESS } from '../config';
 
 export interface Match {
@@ -13,25 +14,53 @@ export interface Match {
     lastUpdate: number;
 }
 
-export const useArena = (provider: BrowserProvider | null, account: string | null) => {
+// Helper to convert viem client to ethers provider/signer
+export function clientToProvider(publicClient: any) {
+    const { chain, transport } = publicClient;
+    const network = {
+        chainId: chain.id,
+        name: chain.name,
+        ensAddress: chain.contracts?.ensRegistry?.address,
+    };
+    return new BrowserProvider(transport, network);
+}
+
+export function clientToSigner(walletClient: any) {
+    const { account, chain, transport } = walletClient;
+    const network = {
+        chainId: chain.id,
+        name: chain.name,
+        ensAddress: chain.contracts?.ensRegistry?.address,
+    };
+    const provider = new BrowserProvider(transport, network);
+    return new JsonRpcSigner(provider, account.address);
+}
+
+export const useArena = () => {
+    const { address: account } = useAccount();
+    const publicClient = usePublicClient();
+    const { data: walletClient } = useWalletClient();
+
     const [matches, setMatches] = useState<Match[]>([]);
     const [pendingWithdrawal, setPendingWithdrawal] = useState<string>('0');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const getContract = useCallback(async (needsSigner = false) => {
-        if (!provider) throw new Error('Provider not available');
+        if (!publicClient) throw new Error('Public client not available');
 
         if (needsSigner) {
-            const signer = await provider.getSigner();
+            if (!walletClient) throw new Error('Wallet not connected');
+            const signer = clientToSigner(walletClient);
             return new Contract(ARENA_CONTRACT_ADDRESS, ARENA_ABI, signer);
         }
 
+        const provider = clientToProvider(publicClient);
         return new Contract(ARENA_CONTRACT_ADDRESS, ARENA_ABI, provider);
-    }, [provider]);
+    }, [publicClient, walletClient]);
 
     const fetchMatches = useCallback(async () => {
-        if (!provider) return;
+        if (!publicClient) return;
 
         try {
             const contract = await getContract();
@@ -59,10 +88,10 @@ export const useArena = (provider: BrowserProvider | null, account: string | nul
             console.error('Error fetching matches:', err);
             setError(err.message);
         }
-    }, [provider, getContract]);
+    }, [publicClient, getContract]);
 
     const fetchPendingWithdrawal = useCallback(async () => {
-        if (!provider || !account) return;
+        if (!publicClient || !account) return;
 
         try {
             const contract = await getContract();
@@ -71,10 +100,10 @@ export const useArena = (provider: BrowserProvider | null, account: string | nul
         } catch (err: any) {
             console.error('Error fetching pending withdrawal:', err);
         }
-    }, [provider, account, getContract]);
+    }, [publicClient, account, getContract]);
 
     const createMatch = async (stakeAmount: string) => {
-        if (!provider || !account) throw new Error('Wallet not connected');
+        if (!account || !walletClient) throw new Error('Wallet not connected');
 
         try {
             setIsLoading(true);
@@ -98,7 +127,7 @@ export const useArena = (provider: BrowserProvider | null, account: string | nul
     };
 
     const joinMatch = async (matchId: number, stakeAmount: string) => {
-        if (!provider || !account) throw new Error('Wallet not connected');
+        if (!account || !walletClient) throw new Error('Wallet not connected');
 
         try {
             setIsLoading(true);
@@ -122,7 +151,7 @@ export const useArena = (provider: BrowserProvider | null, account: string | nul
     };
 
     const withdraw = async () => {
-        if (!provider || !account) throw new Error('Wallet not connected');
+        if (!account || !walletClient) throw new Error('Wallet not connected');
 
         try {
             setIsLoading(true);
@@ -144,7 +173,7 @@ export const useArena = (provider: BrowserProvider | null, account: string | nul
     };
 
     const cancelMatch = async (matchId: number) => {
-        if (!provider || !account) throw new Error('Wallet not connected');
+        if (!account || !walletClient) throw new Error('Wallet not connected');
 
         try {
             setIsLoading(true);
@@ -167,17 +196,17 @@ export const useArena = (provider: BrowserProvider | null, account: string | nul
 
     // Auto-fetch matches and withdrawal balance
     useEffect(() => {
-        if (provider) {
+        if (publicClient) {
             fetchMatches();
             if (account) {
                 fetchPendingWithdrawal();
             }
         }
-    }, [provider, account, fetchMatches, fetchPendingWithdrawal]);
+    }, [publicClient, account, fetchMatches, fetchPendingWithdrawal]);
 
     // Poll for updates every 10 seconds
     useEffect(() => {
-        if (!provider) return;
+        if (!publicClient) return;
 
         const interval = setInterval(() => {
             fetchMatches();
@@ -187,9 +216,11 @@ export const useArena = (provider: BrowserProvider | null, account: string | nul
         }, 10000);
 
         return () => clearInterval(interval);
-    }, [provider, account, fetchMatches, fetchPendingWithdrawal]);
+    }, [publicClient, account, fetchMatches, fetchPendingWithdrawal]);
 
     return {
+        account,
+        publicClient,
         matches,
         pendingWithdrawal,
         isLoading,

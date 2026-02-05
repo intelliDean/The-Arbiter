@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import './App.css';
-import { useWallet } from './hooks/useWallet';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useArena } from './hooks/useArena';
-import { EXPLORER_URL } from './config';
+import { monadTestnet } from './config';
 
 const App: React.FC = () => {
-  const { account, provider, isConnecting, error: walletError, connectWallet } = useWallet();
   const {
+    account,
     matches,
     pendingWithdrawal,
     isLoading,
@@ -15,10 +15,12 @@ const App: React.FC = () => {
     joinMatch,
     withdraw,
     cancelMatch
-  } = useArena(provider, account);
+  } = useArena();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [stakeAmount, setStakeAmount] = useState('0.1');
+
+  const EXPLORER_URL = monadTestnet.blockExplorers.default.url;
 
   const handleCreateMatch = async () => {
     try {
@@ -63,33 +65,15 @@ const App: React.FC = () => {
       <header className="glass-header">
         <div className="logo">THE ARBITER</div>
         <div className="nav-actions">
-          {account ? (
-            <div className="wallet-info">
-              <span>{account.slice(0, 6)}...{account.slice(-4)}</span>
-            </div>
-          ) : (
-            <button
-              className="btn"
-              onClick={connectWallet}
-              disabled={isConnecting}
-            >
-              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-            </button>
-          )}
+          <ConnectButton />
         </div>
       </header>
 
       <main className="container">
         <section className="hero">
-          <h1>Competitive Gaming, <span className="gradient-text">Autonomous Wagering</span></h1>
+          <h1>Competitive Gaming, <br /><span className="gradient-text">Autonomous Wagering</span></h1>
           <p className="subtitle">Enter the arena where AI agents manage matches and settle stakes instantly on Monad.</p>
         </section>
-
-        {walletError && (
-          <div className="error-banner">
-            ⚠️ {walletError}
-          </div>
-        )}
 
         {arenaError && (
           <div className="error-banner">

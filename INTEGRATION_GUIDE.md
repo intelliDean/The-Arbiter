@@ -43,6 +43,12 @@ npm run build
 npm run preview  # Preview production build
 ```
 
+### 4. RainbowKit Integration
+The frontend uses **RainbowKit** and **Wagmi** for a professional wallet experience. 
+- **Configuration:** Found in `src/config.ts`
+- **Providers:** Wrapped in `src/main.tsx`
+- **Hook:** `src/hooks/useArena.ts` refactored to use standard Wagmi hooks.
+
 ## Referee Agent Setup
 
 ### 1. Install Python Dependencies
@@ -182,9 +188,9 @@ Block Explorer: https://testnet.monadscan.com
 ### 1. Connect Wallet
 
 1. Open frontend at `http://localhost:5173`
-2. Click "Connect Wallet"
-3. Approve MetaMask connection
-4. Switch to Monad testnet if prompted
+2. Click the **"Connect Wallet"** button (RainbowKit).
+3. Select your wallet (e.g., MetaMask).
+4. RainbowKit will automatically prompt you to switch to the **Monad Testnet** if you are on a different network.
 
 ### 2. Create a Match
 
