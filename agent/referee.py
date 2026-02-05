@@ -108,52 +108,59 @@ def poll_for_matches(poll_interval=5):
     print("👀 Monitoring blockchain for new matches...\n")
     
     processed_matches = set()
-    last_block = w3.eth.block_number
+    
+    # Look back up to 5,000 blocks on startup to catch missed events during redeploy
+    current_block = w3.eth.block_number
+    last_block = max(0, current_block - 5000)
+    print(f"🔄 Startup: Looking back to block {last_block} to catch missed matches...")
     
     while True:
         try:
             current_block = w3.eth.block_number
             
             if current_block > last_block:
-                # Limit to checking last 100 blocks to avoid large RPC requests
-                start_block = max(last_block + 1, current_block - 100)
-                print(f"📦 Checking blocks {start_block} to {current_block}...")
+                print(f"📦 Checking blocks {last_block + 1} to {current_block}...")
                 
-                try:
-                    events = contract.events.MatchJoined.get_logs(
-                        fromBlock=start_block,
-                        toBlock=current_block
-                    )
+                # Check in chunks of 100 blocks to avoid "Request Entity Too Large"
+                chunk_size = 100
+                for start in range(last_block + 1, current_block + 1, chunk_size):
+                    end = min(start + chunk_size - 1, current_block)
                     
-                    for event in events:
-                        match_id = event['args']['matchId']
+                    try:
+                        events = contract.events.MatchJoined.get_logs(
+                            fromBlock=start,
+                            toBlock=end
+                        )
                         
-                        if match_id in processed_matches:
-                            continue
-                        
-                        opponent = event['args']['opponent']
-                        print(f"\n🔔 Match Joined Event Detected!")
-                        print(f"   Match ID: {match_id}")
-                        print(f"   Opponent: {opponent}")
-                        
-                        # Fetch match details
-                        match_data = contract.functions.matches(match_id).call()
-                        creator = match_data[1]
-                        stake = match_data[3]
-                        
-                        print(f"   Creator: {creator}")
-                        print(f"   Stake: {w3.from_wei(stake, 'ether')} MON")
-                        
-                        # Simulate and settle (isolated try-block)
-                        try:
-                            winner = simulate_game_outcome(creator, opponent)
-                            settle_match(match_id, winner)
-                            processed_matches.add(match_id)
-                        except Exception as settlement_err:
-                            print(f"⚠️  Settlement error for match {match_id}: {settlement_err}")
-                        
-                except Exception as event_err:
-                    print(f"⚠️  Error fetching events: {event_err}")
+                        for event in events:
+                            match_id = event['args']['matchId']
+                            
+                            if match_id in processed_matches:
+                                continue
+                            
+                            opponent = event['args']['opponent']
+                            print(f"\n🔔 Match Joined Event Detected!")
+                            print(f"   Match ID: {match_id}")
+                            print(f"   Opponent: {opponent}")
+                            
+                            # Fetch match details
+                            match_data = contract.functions.matches(match_id).call()
+                            creator = match_data[1]
+                            stake = match_data[3]
+                            
+                            print(f"   Creator: {creator}")
+                            print(f"   Stake: {w3.from_wei(stake, 'ether')} MON")
+                            
+                            # Simulate and settle (isolated try-block)
+                            try:
+                                winner = simulate_game_outcome(creator, opponent)
+                                settle_match(match_id, winner)
+                                processed_matches.add(match_id)
+                            except Exception as settlement_err:
+                                print(f"⚠️  Settlement error for match {match_id}: {settlement_err}")
+                            
+                    except Exception as event_err:
+                        print(f"⚠️  Error fetching events for blocks {start}-{end}: {event_err}")
                 
                 last_block = current_block
             
