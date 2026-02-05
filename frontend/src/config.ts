@@ -8,7 +8,7 @@ export const monadTestnet = defineChain({
     name: 'Monad Testnet',
     nativeCurrency: { name: 'Monad', symbol: 'MON', decimals: 18 },
     rpcUrls: {
-        default: { http: ['https://testnet-rpc.monad.xyz'] },
+        default: { http: ['https://testnet-rpc.monad.xyz', 'https://monad-testnet.drpc.org'] },
     },
     blockExplorers: {
         default: { name: 'MonadScan', url: 'https://testnet.monadscan.com' },
@@ -25,6 +25,10 @@ export const config = getDefaultConfig({
     projectId: 'YOUR_PROJECT_ID', // Replace with your RainbowKit project ID
     chains: [monadTestnet],
     transports: {
-        [monadTestnet.id]: http(),
+        [monadTestnet.id]: http(undefined, {
+            timeout: 60_000,
+            retryCount: 3,
+            retryDelay: 2_000,
+        }),
     },
 });
