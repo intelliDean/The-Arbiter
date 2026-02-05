@@ -13,8 +13,12 @@ CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")
 PRIVATE_KEY = os.getenv("PRIVATE_KEY")
 REFEREE_ADDRESS = os.getenv("REFEREE_ADDRESS")
 
-# Load ABI
-with open("../contracts/out/Arena.sol/Arena.json", "r") as f:
+# Load ABI from local file (works in cloud deployment)
+import os
+script_dir = os.path.dirname(os.path.abspath(__file__))
+abi_path = os.path.join(script_dir, "Arena.json")
+
+with open(abi_path, "r") as f:
     contract_json = json.load(f)
     ABI = contract_json["abi"]
 
@@ -31,11 +35,16 @@ def settle_match(match_id, winner_address):
     print(f"⚖️  Settling match {match_id} with winner {winner_address}...")
     
     nonce = w3.eth.get_transaction_count(REFEREE_ADDRESS)
+    
+    # Get current gas price and add 20% buffer for Monad testnet
+    base_gas_price = w3.eth.gas_price
+    gas_price = int(base_gas_price * 1.2)
+    
     tx = contract.functions.settleMatch(match_id, winner_address).build_transaction({
         'from': REFEREE_ADDRESS,
         'nonce': nonce,
         'gas': 300000,  # Increased for v2 logic
-        'gasPrice': w3.to_wei('50', 'gwei')
+        'gasPrice': gas_price
     })
     
     signed_tx = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)

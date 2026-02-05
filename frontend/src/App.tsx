@@ -1,31 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
-
-interface Match {
-  id: number;
-  creator: string;
-  opponent: string;
-  stake: string;
-  referee: string;
-  status: string;
-}
+import { useWallet } from './hooks/useWallet';
+import { useArena } from './hooks/useArena';
+import { EXPLORER_URL } from './config';
 
 const App: React.FC = () => {
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [account, setAccount] = useState<string | null>(null);
+  const { account, provider, isConnecting, error: walletError, connectWallet } = useWallet();
+  const {
+    matches,
+    pendingWithdrawal,
+    isLoading,
+    error: arenaError,
+    createMatch,
+    joinMatch,
+    withdraw,
+    cancelMatch
+  } = useArena(provider, account);
 
-  // Mock data for initial UI build
-  useEffect(() => {
-    setMatches([
-      { id: 1, creator: '0x1de...3a2', opponent: '0x4b1...9c8', stake: '1.0 MON', referee: 'Agent (Referee)', status: 'Active' },
-      { id: 2, creator: '0x7e2...5f1', opponent: '', stake: '0.5 MON', referee: 'Agent (Referee)', status: 'Pending' },
-      { id: 3, creator: '0x3c9...1d4', opponent: '0x2a1...0b2', stake: '2.5 MON', referee: 'Agent (Referee)', status: 'Settled' },
-    ]);
-  }, []);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [stakeAmount, setStakeAmount] = useState('0.1');
 
-  const connectWallet = () => {
-    // Basic mock connection
-    setAccount('0x71C7656EC7ab88b098defB751B7401B5f6d8976F');
+  const handleCreateMatch = async () => {
+    try {
+      const txHash = await createMatch(stakeAmount);
+      console.log('Match created:', txHash);
+      setShowCreateModal(false);
+      setStakeAmount('0.1');
+    } catch (err) {
+      console.error('Failed to create match:', err);
+    }
+  };
+
+  const handleJoinMatch = async (matchId: number, stake: string) => {
+    try {
+      const txHash = await joinMatch(matchId, stake);
+      console.log('Joined match:', txHash);
+    } catch (err) {
+      console.error('Failed to join match:', err);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    try {
+      const txHash = await withdraw();
+      console.log('Withdrawal successful:', txHash);
+    } catch (err) {
+      console.error('Failed to withdraw:', err);
+    }
+  };
+
+  const handleCancelMatch = async (matchId: number) => {
+    try {
+      const txHash = await cancelMatch(matchId);
+      console.log('Match cancelled:', txHash);
+    } catch (err) {
+      console.error('Failed to cancel match:', err);
+    }
   };
 
   return (
@@ -38,7 +68,13 @@ const App: React.FC = () => {
               <span>{account.slice(0, 6)}...{account.slice(-4)}</span>
             </div>
           ) : (
-            <button className="btn" onClick={connectWallet}>Connect Wallet</button>
+            <button
+              className="btn"
+              onClick={connectWallet}
+              disabled={isConnecting}
+            >
+              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+            </button>
           )}
         </div>
       </header>
@@ -49,37 +85,160 @@ const App: React.FC = () => {
           <p className="subtitle">Enter the arena where AI agents manage matches and settle stakes instantly on Monad.</p>
         </section>
 
+        {walletError && (
+          <div className="error-banner">
+            ⚠️ {walletError}
+          </div>
+        )}
+
+        {arenaError && (
+          <div className="error-banner">
+            ⚠️ {arenaError}
+          </div>
+        )}
+
+        {account && parseFloat(pendingWithdrawal) > 0 && (
+          <div className="withdrawal-banner">
+            <div>
+              <strong>💰 Winnings Available:</strong> {parseFloat(pendingWithdrawal).toFixed(4)} MON
+            </div>
+            <button
+              className="btn"
+              onClick={handleWithdraw}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Processing...' : 'Withdraw'}
+            </button>
+          </div>
+        )}
+
         <section className="dashboard-controls">
-          <button className="btn">Create New Match</button>
+          <button
+            className="btn"
+            onClick={() => setShowCreateModal(true)}
+            disabled={!account || isLoading}
+          >
+            Create New Match
+          </button>
         </section>
 
+        {showCreateModal && (
+          <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <h2>Create New Match</h2>
+              <div className="form-group">
+                <label>Stake Amount (MON)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={stakeAmount}
+                  onChange={(e) => setStakeAmount(e.target.value)}
+                  placeholder="0.1"
+                />
+              </div>
+              <div className="modal-actions">
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setShowCreateModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn"
+                  onClick={handleCreateMatch}
+                  disabled={isLoading || !stakeAmount || parseFloat(stakeAmount) <= 0}
+                >
+                  {isLoading ? 'Creating...' : 'Create Match'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid">
+          {matches.length === 0 && !isLoading && (
+            <div className="empty-state">
+              <p>No matches yet. Create the first one!</p>
+            </div>
+          )}
+
           {matches.map((match) => (
             <div key={match.id} className="card">
               <div className="card-header">
                 <span className={`badge badge-${match.status.toLowerCase()}`}>{match.status}</span>
-                <span className="match-id">#00{match.id}</span>
+                <a
+                  href={`${EXPLORER_URL}/address/${match.creator}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="match-id"
+                >
+                  #{String(match.id).padStart(3, '0')}
+                </a>
               </div>
               <div className="card-body">
                 <div className="stake-info">
                   <span className="label">Stake:</span>
-                  <span className="value">{match.stake}</span>
+                  <span className="value">{parseFloat(match.stake).toFixed(4)} MON</span>
                 </div>
                 <div className="players">
                   <div className="player">
                     <span className="label">Creator:</span>
-                    <span className="value">{match.creator}</span>
+                    <span className="value">{match.creator.slice(0, 6)}...{match.creator.slice(-4)}</span>
                   </div>
                   <div className="player">
                     <span className="label">Opponent:</span>
-                    <span className="value">{match.opponent || 'Waiting...'}</span>
+                    <span className="value">
+                      {match.opponent === '0x0000000000000000000000000000000000000000'
+                        ? 'Waiting...'
+                        : `${match.opponent.slice(0, 6)}...${match.opponent.slice(-4)}`
+                      }
+                    </span>
                   </div>
+                  {match.status === 'Settled' && (
+                    <div className="player">
+                      <span className="label">Winner:</span>
+                      <span className="value winner">
+                        🏆 {match.winner.slice(0, 6)}...{match.winner.slice(-4)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="card-footer">
-                {match.status === 'Pending' && <button className="btn btn-outline full-width">Join Arena</button>}
-                {match.status === 'Active' && <button className="btn btn-outline full-width disabled">Match In Progress</button>}
-                {match.status === 'Settled' && <button className="btn btn-outline full-width disabled">Settled</button>}
+                {match.status === 'Pending' && account && match.creator.toLowerCase() !== account.toLowerCase() && (
+                  <button
+                    className="btn btn-outline full-width"
+                    onClick={() => handleJoinMatch(match.id, match.stake)}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Joining...' : 'Join Arena'}
+                  </button>
+                )}
+                {match.status === 'Pending' && account && match.creator.toLowerCase() === account.toLowerCase() && (
+                  <button
+                    className="btn btn-outline full-width"
+                    onClick={() => handleCancelMatch(match.id)}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Cancelling...' : 'Cancel Match'}
+                  </button>
+                )}
+                {match.status === 'Active' && (
+                  <button className="btn btn-outline full-width disabled">
+                    Match In Progress
+                  </button>
+                )}
+                {match.status === 'Settled' && (
+                  <button className="btn btn-outline full-width disabled">
+                    Settled
+                  </button>
+                )}
+                {match.status === 'Cancelled' && (
+                  <button className="btn btn-outline full-width disabled">
+                    Cancelled
+                  </button>
+                )}
               </div>
             </div>
           ))}
