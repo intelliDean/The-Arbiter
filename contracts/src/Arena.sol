@@ -1,31 +1,41 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "./Utils.sol";
+
 /**
  * @title The Arbiter (Arena)
  * @dev A simple wagering contract for competitive gaming, managed by an autonomous arbiter.
  */
 contract Arena {
-    enum MatchStatus { Pending, Active, Settled, Cancelled }
+    address public owner;
+    uint256 public nextMatchId;
+    mapping(uint256 => Utils.Match) public matches;
+    
+    // Fee System
+    uint256 public constant FEE_BPS = 250; // 2.5%
+    // Timeout Config
+    uint256 public constant TIMEOUT = 24 hours;
+    uint256 public totalFees;
+    
+    // Pull Withdrawal Pattern
+    mapping(address => uint256) public pendingWithdrawals;
 
-    struct Match {
-        uint256 id;
-        address creator;
-        address opponent;
-        uint256 stake;
-        address referee;
-        MatchStatus status;
-        address winner;
+    // Custom Reentrancy Guard
+    bool private locked;
+    modifier nonReentrant() {
+        if (locked) revert Utils.REENTRANCY();
+        locked = true;
+        _;
+        locked = false;
     }
 
-    uint256 public nextMatchId;
-    mapping(uint256 => Match) public matches;
-    address public owner;
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert Utils.ONLY_OWNER();
+        _;
+    }
 
-    event MatchCreated(uint256 indexed matchId, address creator, uint256 stake, address referee);
-    event MatchJoined(uint256 indexed matchId, address opponent);
-    event MatchSettled(uint256 indexed matchId, address winner);
-    event MatchCancelled(uint256 indexed matchId);
+
 
     constructor() {
         owner = msg.sender;
@@ -35,21 +45,22 @@ contract Arena {
      * @dev Create a new match with a specific stake and referee.
      */
     function createMatch(address _referee) external payable returns (uint256) {
-        require(msg.value > 0, "Stake must be greater than 0");
-        require(_referee != address(0), "Referee cannot be zero address");
+        if (msg.value == 0) revert Utils.MUST_BE_GREATER_THAN_ZERO();
+        if (_referee == address(0)) revert Utils.INVALID_REFEREE();
 
         uint256 matchId = nextMatchId++;
-        matches[matchId] = Match({
+        matches[matchId] = Utils.Match({
             id: matchId,
             creator: msg.sender,
             opponent: address(0),
             stake: msg.value,
             referee: _referee,
-            status: MatchStatus.Pending,
-            winner: address(0)
+            status: Utils.MatchStatus.Pending,
+            winner: address(0),
+            lastUpdate: block.timestamp
         });
 
-        emit MatchCreated(matchId, msg.sender, msg.value, _referee);
+        emit Utils.MatchCreated(matchId, msg.sender, msg.value, _referee);
         return matchId;
     }
 
@@ -57,49 +68,106 @@ contract Arena {
      * @dev Join a pending match by matching the stake.
      */
     function joinMatch(uint256 _matchId) external payable {
-        Match storage m = matches[_matchId];
-        require(m.status == MatchStatus.Pending, "Match not pending");
-        require(msg.value == m.stake, "Must match the exact stake");
-        require(msg.sender != m.creator, "Cannot join your own match");
+        Utils.Match storage m = matches[_matchId];
+        if (m.status != Utils.MatchStatus.Pending) revert Utils.MATCH_NOT_PENDING();
+        if (msg.value != m.stake) revert Utils.INCORRECT_STAKE();
+        if (msg.sender == m.creator) revert Utils.CANNOT_JOIN_OWN_MATCH();
 
         m.opponent = msg.sender;
-        m.status = MatchStatus.Active;
+        m.status = Utils.MatchStatus.Active;
+        m.lastUpdate = block.timestamp;
 
-        emit MatchJoined(_matchId, msg.sender);
+        emit Utils.MatchJoined(_matchId, msg.sender);
     }
 
     /**
-     * @dev Settle a match. Only the designated referee can call this.
+     * @dev Settle a match. Winnings are moved to pendingWithdrawals.
      */
     function settleMatch(uint256 _matchId, address _winner) external {
-        Match storage m = matches[_matchId];
-        require(m.status == MatchStatus.Active, "Match not active");
-        require(msg.sender == m.referee, "Only referee can settle");
-        require(_winner == m.creator || _winner == m.opponent, "Winner must be a participant");
+        Utils.Match storage m = matches[_matchId];
+        if (m.status != Utils.MatchStatus.Active) revert Utils.MATCH_NOT_ACTIVE();
+        if (msg.sender != m.referee) revert Utils.ONLY_REFEREE_CAN_SETTLE();
+        if (_winner != m.creator && _winner != m.opponent) revert Utils.WINNER_MUST_BE_PARTICIPANT();
 
-        m.status = MatchStatus.Settled;
+        m.status = Utils.MatchStatus.Settled;
         m.winner = _winner;
+        m.lastUpdate = block.timestamp;
 
-        uint256 totalPrize = m.stake * 2;
-        (bool success, ) = _winner.call{value: totalPrize}("");
-        require(success, "Transfer failed");
+        uint256 totalPool = m.stake * 2;
+        uint256 fee = (totalPool * FEE_BPS) / 10000;
+        uint256 prize = totalPool - fee;
 
-        emit MatchSettled(_matchId, _winner);
+        totalFees += fee;
+        pendingWithdrawals[_winner] += prize;
+
+        emit Utils.MatchSettled(_matchId, _winner, prize, fee);
     }
 
     /**
-     * @dev Cancel a match if it hasn't started yet.
+     * @dev Standard pull-withdrawal for players.
      */
-    function cancelMatch(uint256 _matchId) external {
-        Match storage m = matches[_matchId];
-        require(m.status == MatchStatus.Pending, "Only pending matches can be cancelled");
-        require(msg.sender == m.creator, "Only creator can cancel");
+    function withdraw() external nonReentrant {
+        uint256 amount = pendingWithdrawals[msg.sender];
+        if (amount == 0) revert Utils.NOTHING_TO_WITHDRAW();
 
-        m.status = MatchStatus.Cancelled;
+        pendingWithdrawals[msg.sender] = 0;
+        (bool success, ) = msg.sender.call{value: amount}("");
+        if (!success) revert Utils.TRANSFER_FAILED();
+
+        emit Utils.WinningsWithdrawn(msg.sender, amount);
+    }
+
+    /**
+     * @dev Only the creator can cancel if no one joined.
+     */
+    function cancelMatch(uint256 _matchId) external nonReentrant {
+        Utils.Match storage m = matches[_matchId];
+        if (m.status != Utils.MatchStatus.Pending) revert Utils.ONLY_PENDING_MATCHES_CAN_BE_CANCELLED();
+        if (msg.sender != m.creator) revert Utils.ONLY_CREATOR_CAN_CANCEL();
+
+        m.status = Utils.MatchStatus.Cancelled;
+        m.lastUpdate = block.timestamp;
+
         (bool success, ) = m.creator.call{value: m.stake}("");
-        require(success, "Refund failed");
+        if (!success) revert Utils.REFUND_FAILED();
 
-        emit MatchCancelled(_matchId);
+        emit Utils.MatchCancelled(_matchId);
+    }
+
+    /**
+     * @dev Emergency reclaim if a match is stuck in Active status. Splits pool back to players.
+     */
+    function emergencyClaim(uint256 _matchId) external nonReentrant {
+        Utils.Match storage m = matches[_matchId];
+        if (m.status != Utils.MatchStatus.Active) revert Utils.MATCH_NOT_ACTIVE();
+        if (block.timestamp < m.lastUpdate + TIMEOUT) revert Utils.TIMEOUT_NOT_REACHED();
+
+        m.status = Utils.MatchStatus.Cancelled;
+        
+        uint256 amount = m.stake;
+        address creator = m.creator;
+        address opponent = m.opponent;
+
+        (bool s1, ) = creator.call{value: amount}("");
+        (bool s2, ) = opponent.call{value: amount}("");
+        
+        if (!s1 || !s2) revert Utils.REFUND_FAILED();
+
+        emit Utils.EmergencyClaim(_matchId, creator, opponent);
+    }
+
+    /**
+     * @dev Owner can withdraw platform fees.
+     */
+    function withdrawFees() external onlyOwner nonReentrant {
+        uint256 amount = totalFees;
+        if (amount == 0) revert Utils.NOTHING_TO_WITHDRAW();
+
+        totalFees = 0;
+        (bool success, ) = owner.call{value: amount}("");
+        if (!success) revert Utils.TRANSFER_FAILED();
+
+        emit Utils.FeesWithdrawn(owner, amount);
     }
 
     receive() external payable {}
