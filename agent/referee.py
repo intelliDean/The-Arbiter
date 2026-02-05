@@ -28,35 +28,44 @@ contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=ABI)
 def settle_match(match_id, winner_address):
     """
     Settle a match by declaring the winner.
-    The Arbiter v2 will automatically:
-    - Deduct 2.5% platform fee
-    - Credit winner's pendingWithdrawals
     """
+    if not PRIVATE_KEY or PRIVATE_KEY == "YOUR_PRIVATE_KEY_HERE":
+        print("❌ Error: PRIVATE_KEY not configured correctly in .env or environment variables.")
+        return
+
     print(f"⚖️  Settling match {match_id} with winner {winner_address}...")
     
-    nonce = w3.eth.get_transaction_count(REFEREE_ADDRESS)
-    
-    # Get current gas price and add 20% buffer for Monad testnet
-    base_gas_price = w3.eth.gas_price
-    gas_price = int(base_gas_price * 1.2)
-    
-    tx = contract.functions.settleMatch(match_id, winner_address).build_transaction({
-        'from': REFEREE_ADDRESS,
-        'nonce': nonce,
-        'gas': 300000,  # Increased for v2 logic
-        'gasPrice': gas_price
-    })
-    
-    signed_tx = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)
-    tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-    
-    print(f"📤 Transaction sent: {tx_hash.hex()}")
-    receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-    
-    if receipt.status == 1:
-        print(f"✅ Match {match_id} settled in block {receipt.blockNumber}")
-    else:
-        print(f"❌ Settlement failed for match {match_id}")
+    try:
+        nonce = w3.eth.get_transaction_count(REFEREE_ADDRESS)
+        
+        # Get current gas price and add 20% buffer for Monad testnet
+        base_gas_price = w3.eth.gas_price
+        gas_price = int(base_gas_price * 1.2)
+        
+        # Monad Testnet Chain ID
+        chain_id = 10143
+        
+        tx = contract.functions.settleMatch(match_id, winner_address).build_transaction({
+            'from': REFEREE_ADDRESS,
+            'nonce': nonce,
+            'gas': 300000,
+            'gasPrice': gas_price,
+            'chainId': chain_id
+        })
+        
+        signed_tx = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)
+        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        
+        print(f"📤 Transaction sent: {tx_hash.hex()}")
+        print(f"⏳ Waiting for confirmation...")
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+        
+        if receipt.status == 1:
+            print(f"✅ Match {match_id} settled in block {receipt.blockNumber}")
+        else:
+            print(f"❌ Settlement failed (Transaction reverted)")
+    except Exception as e:
+        print(f"❌ Error during settlement: {e}")
 
 def simulate_game_outcome(creator, opponent):
     """
@@ -95,11 +104,9 @@ def handle_match_joined(event):
 def poll_for_matches(poll_interval=5):
     """
     Poll for new matches by checking recent blocks.
-    Monad RPC doesn't support eth_newFilter, so we use block polling.
     """
     print("👀 Monitoring blockchain for new matches...\n")
     
-    # Track processed matches to avoid duplicate settlements
     processed_matches = set()
     last_block = w3.eth.block_number
     
@@ -107,21 +114,20 @@ def poll_for_matches(poll_interval=5):
         try:
             current_block = w3.eth.block_number
             
-            # Check if there are new blocks
             if current_block > last_block:
-                print(f"📦 Checking blocks {last_block + 1} to {current_block}...")
+                # Limit to checking last 100 blocks to avoid large RPC requests
+                start_block = max(last_block + 1, current_block - 100)
+                print(f"📦 Checking blocks {start_block} to {current_block}...")
                 
-                # Get MatchJoined events from recent blocks
                 try:
                     events = contract.events.MatchJoined.get_logs(
-                        fromBlock=last_block + 1,
+                        fromBlock=start_block,
                         toBlock=current_block
                     )
                     
                     for event in events:
                         match_id = event['args']['matchId']
                         
-                        # Skip if already processed
                         if match_id in processed_matches:
                             continue
                         
@@ -138,24 +144,23 @@ def poll_for_matches(poll_interval=5):
                         print(f"   Creator: {creator}")
                         print(f"   Stake: {w3.from_wei(stake, 'ether')} MON")
                         
-                        # Simulate the game
-                        winner = simulate_game_outcome(creator, opponent)
+                        # Simulate and settle (isolated try-block)
+                        try:
+                            winner = simulate_game_outcome(creator, opponent)
+                            settle_match(match_id, winner)
+                            processed_matches.add(match_id)
+                        except Exception as settlement_err:
+                            print(f"⚠️  Settlement error for match {match_id}: {settlement_err}")
                         
-                        # Settle the match
-                        settle_match(match_id, winner)
-                        
-                        # Mark as processed
-                        processed_matches.add(match_id)
-                        
-                except Exception as e:
-                    print(f"⚠️  Error fetching events: {e}")
+                except Exception as event_err:
+                    print(f"⚠️  Error fetching events: {event_err}")
                 
                 last_block = current_block
             
             time.sleep(poll_interval)
             
-        except Exception as e:
-            print(f"⚠️  Error in polling loop: {e}")
+        except Exception as loop_err:
+            print(f"⚠️  Error in polling loop: {loop_err}")
             time.sleep(poll_interval)
 
 def main():
