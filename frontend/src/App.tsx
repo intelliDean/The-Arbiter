@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useArena } from './hooks/useArena';
+import { useProfiles } from './hooks/useProfiles';
 import { monadTestnet } from './config';
 import { parseError } from './utils/errorParser';
+import { getDeterministicAvatar } from './utils/identity';
 
 interface Notification {
   id: string;
@@ -12,6 +14,7 @@ interface Notification {
 }
 
 const App: React.FC = () => {
+  const { resolveName, setName: setProfileNameOnChain, isLoading: isProfileLoading, namesCache } = useProfiles();
   const {
     account,
     matches,
@@ -24,6 +27,16 @@ const App: React.FC = () => {
     cancelMatch
   } = useArena();
 
+  // Resolve names for matches
+  useEffect(() => {
+    matches.forEach(m => {
+      resolveName(m.creator);
+      if (m.opponent !== '0x0000000000000000000000000000000000000000') {
+        resolveName(m.opponent);
+      }
+    });
+  }, [matches, resolveName]);
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<{ id: number, stake: string } | null>(null);
@@ -32,6 +45,9 @@ const App: React.FC = () => {
   const [joinGuess, setJoinGuess] = useState('50');
   const [filterStatus, setFilterStatus] = useState<'All' | 'Pending' | 'Active' | 'Settled' | 'Cancelled'>('All');
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileName, setProfileName] = useState('');
 
   const addNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Date.now().toString();
@@ -115,10 +131,26 @@ const App: React.FC = () => {
         ))}
       </div>
       <header className="glass-header">
-        <div className="logo">
-          <img src="/logo.png" alt="THE ARBITER" className="logo-img" />
+        <div className="header-left">
+          <div className="logo">
+            <img src="/logo.png" alt="THE ARBITER" className="logo-img" />
+          </div>
+          <div className="search-wrapper">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search by player name or address..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
         <div className="nav-actions">
+          {account && (
+            <button className="btn btn-outline btn-round" onClick={() => setShowProfileModal(true)}>
+              👤
+            </button>
+          )}
           <ConnectButton />
         </div>
       </header>
@@ -256,14 +288,36 @@ const App: React.FC = () => {
         )}
 
         <div className="grid">
-          {matches.filter(m => filterStatus === 'All' || m.status === filterStatus).length === 0 && !isLoading && (
-            <div className="empty-state">
-              <p>No {filterStatus !== 'All' ? filterStatus.toLowerCase() : ''} matches yet.</p>
-            </div>
-          )}
+          {matches.filter(m => {
+            const matchesStatus = filterStatus === 'All' || m.status === filterStatus;
+            const searchLower = searchTerm.toLowerCase();
+            const creatorName = namesCache[m.creator] || '';
+            const opponentName = namesCache[m.opponent] || '';
+            const matchesSearch = !searchTerm ||
+              m.creator.toLowerCase().includes(searchLower) ||
+              m.opponent.toLowerCase().includes(searchLower) ||
+              creatorName.toLowerCase().includes(searchLower) ||
+              opponentName.toLowerCase().includes(searchLower);
+            return matchesStatus && matchesSearch;
+          }).length === 0 && !isLoading && (
+              <div className="empty-state">
+                <p>No results found for your search/filter.</p>
+              </div>
+            )}
 
           {matches
-            .filter(m => filterStatus === 'All' || m.status === filterStatus)
+            .filter(m => {
+              const matchesStatus = filterStatus === 'All' || m.status === filterStatus;
+              const searchLower = searchTerm.toLowerCase();
+              const creatorName = namesCache[m.creator] || '';
+              const opponentName = namesCache[m.opponent] || '';
+              const matchesSearch = !searchTerm ||
+                m.creator.toLowerCase().includes(searchLower) ||
+                m.opponent.toLowerCase().includes(searchLower) ||
+                creatorName.toLowerCase().includes(searchLower) ||
+                opponentName.toLowerCase().includes(searchLower);
+              return matchesStatus && matchesSearch;
+            })
             .map((match) => (
               <div key={match.id} className="card">
                 <div className="card-header">
@@ -284,20 +338,22 @@ const App: React.FC = () => {
                   </div>
                   <div className="players">
                     <div className="player">
+                      <div className="player-avatar" style={{ backgroundColor: getDeterministicAvatar(match.creator) }}></div>
                       <span className="label">Creator:</span>
                       <span className="value">
-                        {match.creator.slice(0, 6)}...{match.creator.slice(-4)}
+                        {namesCache[match.creator] || match.creator.slice(0, 6) + '...' + match.creator.slice(-4)}
                         {match.status === 'Settled' && (
                           <span className="guess-tag">({match.creatorGuess})</span>
                         )}
                       </span>
                     </div>
                     <div className="player">
+                      <div className="player-avatar" style={{ backgroundColor: getDeterministicAvatar(match.opponent) }}></div>
                       <span className="label">Opponent:</span>
                       <span className="value">
                         {match.opponent === '0x0000000000000000000000000000000000000000'
                           ? (match.status === 'Cancelled' ? 'Cancelled' : 'Waiting...')
-                          : `${match.opponent.slice(0, 6)}...${match.opponent.slice(-4)}`
+                          : (namesCache[match.opponent] || match.opponent.slice(0, 6) + '...' + match.opponent.slice(-4))
                         }
                         {match.opponent !== '0x0000000000000000000000000000000000000000' && match.status === 'Settled' && (
                           <span className="guess-tag">({match.opponentGuess})</span>
@@ -369,6 +425,43 @@ const App: React.FC = () => {
               </div>
             ))}
         </div>
+
+        {showProfileModal && (
+          <div className="modal-overlay" onClick={() => setShowProfileModal(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <h2>Your Profile</h2>
+              <div className="form-group">
+                <label>Set your Unique Name</label>
+                <input
+                  type="text"
+                  maxLength={20}
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                  placeholder="Neon Wolf..."
+                />
+                <small className="help-text">Choose a name that will be remembered in the arena.</small>
+              </div>
+              <div className="modal-actions">
+                <button className="btn btn-outline" onClick={() => setShowProfileModal(false)}>Cancel</button>
+                <button
+                  className="btn"
+                  onClick={async () => {
+                    try {
+                      await setProfileNameOnChain(profileName);
+                      addNotification('Profile updated!', 'success');
+                      setShowProfileModal(false);
+                    } catch (err: any) {
+                      addNotification(parseError(err), 'error');
+                    }
+                  }}
+                  disabled={isProfileLoading || profileName.length < 3}
+                >
+                  {isProfileLoading ? 'Saving...' : 'Save Profile'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
