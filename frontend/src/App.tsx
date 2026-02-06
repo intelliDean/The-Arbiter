@@ -3,6 +3,7 @@ import './App.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useArena } from './hooks/useArena';
 import { monadTestnet } from './config';
+import { parseError } from './utils/errorParser';
 
 interface Notification {
   id: string;
@@ -52,7 +53,7 @@ const App: React.FC = () => {
       setGuess('50');
     } catch (err: any) {
       console.error('Failed to create match:', err);
-      addNotification(`Failed to create match: ${err.message || 'Unknown error'}`, 'error');
+      addNotification(parseError(err), 'error');
     }
   };
 
@@ -79,7 +80,7 @@ const App: React.FC = () => {
       setJoinGuess('50');
     } catch (err: any) {
       console.error('Failed to join match:', err);
-      addNotification(`Failed to join match: ${err.message || 'Unknown error'}`, 'error');
+      addNotification(parseError(err), 'error');
     }
   };
   const handleWithdraw = async () => {
@@ -89,7 +90,7 @@ const App: React.FC = () => {
       console.log('Withdrawal successful:', txHash);
     } catch (err: any) {
       console.error('Failed to withdraw:', err);
-      addNotification(`Failed to withdraw: ${err.message || 'Unknown error'}`, 'error');
+      addNotification(parseError(err), 'error');
     }
   };
 
@@ -100,7 +101,7 @@ const App: React.FC = () => {
       console.log('Match cancelled:', txHash);
     } catch (err: any) {
       console.error('Failed to cancel match:', err);
-      addNotification(`Failed to cancel match: ${err.message || 'Unknown error'}`, 'error');
+      addNotification(parseError(err), 'error');
     }
   };
 

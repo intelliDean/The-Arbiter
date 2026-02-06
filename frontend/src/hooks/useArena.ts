@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Contract, parseEther, formatEther, BrowserProvider, JsonRpcSigner } from 'ethers';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { ARENA_CONTRACT_ADDRESS, ARENA_ABI } from '../config';
+import { parseError } from '../utils/errorParser';
 
 export interface Match {
     id: number;
@@ -123,7 +124,7 @@ export const useArena = () => {
 
             return tx.hash;
         } catch (err: any) {
-            setError(err.message || 'Failed to create match');
+            setError(parseError(err));
             throw err;
         } finally {
             setIsLoading(false);
@@ -147,7 +148,7 @@ export const useArena = () => {
 
             return tx.hash;
         } catch (err: any) {
-            setError(err.message || 'Failed to join match');
+            setError(parseError(err));
             throw err;
         } finally {
             setIsLoading(false);
@@ -169,7 +170,7 @@ export const useArena = () => {
 
             return tx.hash;
         } catch (err: any) {
-            setError(err.message || 'Failed to withdraw');
+            setError(parseError(err));
             throw err;
         } finally {
             setIsLoading(false);
@@ -191,7 +192,7 @@ export const useArena = () => {
 
             return tx.hash;
         } catch (err: any) {
-            setError(err.message || 'Failed to cancel match');
+            setError(parseError(err));
             throw err;
         } finally {
             setIsLoading(false);
