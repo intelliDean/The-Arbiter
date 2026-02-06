@@ -346,8 +346,8 @@ const App: React.FC = () => {
                       <div className="player-avatar" style={{ backgroundColor: getDeterministicAvatar(match.creator) }}></div>
                       <div className="player-info">
                         <span className="label">Creator</span>
-                        <div className="name-with-guess">
-                          <span className="value truncate">
+                        <div className="player-name-container">
+                          <span className="player-name">
                             {namesCache[match.creator] || match.creator.slice(0, 6) + '...' + match.creator.slice(-4)}
                           </span>
                           {(match.status === 'Active' || match.status === 'Settled') && (
@@ -366,8 +366,8 @@ const App: React.FC = () => {
                     <div className="player-side text-right">
                       <div className="player-info">
                         <span className="label">Opponent</span>
-                        <div className="name-with-guess">
-                          <span className="value truncate">
+                        <div className="player-name-container">
+                          <span className="player-name">
                             {match.opponent === '0x0000000000000000000000000000000000000000'
                               ? (match.status === 'Cancelled' ? 'Cancelled' : 'Waiting...')
                               : (namesCache[match.opponent] || match.opponent.slice(0, 6) + '...' + match.opponent.slice(-4))

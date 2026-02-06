@@ -474,20 +474,23 @@
   min-width: 0;
 }
 
-.name-with-guess {
+.player-name-container {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   min-width: 0;
-  /* Allow the name part to shrink */
+  margin-top: 0.1rem;
 }
 
-.truncate {
+.player-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
-  /* Take up available space but don't overflow */
+  flex-shrink: 1;
 }
 
 .guess-tag {
