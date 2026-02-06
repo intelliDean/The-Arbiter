@@ -474,11 +474,33 @@
   min-width: 0;
 }
 
+.name-with-guess {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  /* Allow the name part to shrink */
+}
+
 .truncate {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: block;
+  flex: 1;
+  /* Take up available space but don't overflow */
+}
+
+.guess-tag {
+  background: rgba(168, 85, 247, 0.15);
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.35rem;
+  color: #c084fc;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  /* Never hide the guess */
+  white-space: nowrap;
+  border: 1px solid rgba(168, 85, 247, 0.3);
 }
 
 .user-profile-summary {

@@ -346,12 +346,14 @@ const App: React.FC = () => {
                       <div className="player-avatar" style={{ backgroundColor: getDeterministicAvatar(match.creator) }}></div>
                       <div className="player-info">
                         <span className="label">Creator</span>
-                        <span className="value">
-                          {namesCache[match.creator] || match.creator.slice(0, 6) + '...' + match.creator.slice(-4)}
-                          {match.status === 'Settled' && (
+                        <div className="name-with-guess">
+                          <span className="value truncate">
+                            {namesCache[match.creator] || match.creator.slice(0, 6) + '...' + match.creator.slice(-4)}
+                          </span>
+                          {(match.status === 'Active' || match.status === 'Settled') && (
                             <span className="guess-tag">({match.creatorGuess})</span>
                           )}
-                        </span>
+                        </div>
                       </div>
                     </div>
 
@@ -364,15 +366,18 @@ const App: React.FC = () => {
                     <div className="player-side text-right">
                       <div className="player-info">
                         <span className="label">Opponent</span>
-                        <span className="value truncate">
-                          {match.opponent === '0x0000000000000000000000000000000000000000'
-                            ? (match.status === 'Cancelled' ? 'Cancelled' : 'Waiting...')
-                            : (namesCache[match.opponent] || match.opponent.slice(0, 6) + '...' + match.opponent.slice(-4))
-                          }
-                          {match.opponent !== '0x0000000000000000000000000000000000000000' && match.status === 'Settled' && (
-                            <span className="guess-tag">({match.opponentGuess})</span>
-                          )}
-                        </span>
+                        <div className="name-with-guess">
+                          <span className="value truncate">
+                            {match.opponent === '0x0000000000000000000000000000000000000000'
+                              ? (match.status === 'Cancelled' ? 'Cancelled' : 'Waiting...')
+                              : (namesCache[match.opponent] || match.opponent.slice(0, 6) + '...' + match.opponent.slice(-4))
+                            }
+                          </span>
+                          {match.opponent !== '0x0000000000000000000000000000000000000000' &&
+                            (match.status === 'Active' || match.status === 'Settled') && (
+                              <span className="guess-tag">({match.opponentGuess})</span>
+                            )}
+                        </div>
                       </div>
                       <div className="player-avatar" style={{ backgroundColor: getDeterministicAvatar(match.opponent) }}></div>
                     </div>
