@@ -18,8 +18,11 @@ const App: React.FC = () => {
   } = useArena();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<{ id: number, stake: string } | null>(null);
   const [stakeAmount, setStakeAmount] = useState('0.1');
   const [guess, setGuess] = useState('50');
+  const [joinGuess, setJoinGuess] = useState('50');
 
   const EXPLORER_URL = monadTestnet.blockExplorers.default.url;
 
@@ -35,24 +38,30 @@ const App: React.FC = () => {
     }
   };
 
-  const handleJoinMatch = async (matchId: number, stake: string) => {
-    const userGuess = prompt("Enter your guess (1-100) to join this arena:", "50");
-    if (!userGuess) return;
+  const handleOpenJoinModal = (matchId: number, stake: string) => {
+    setSelectedMatch({ id: matchId, stake });
+    setShowJoinModal(true);
+  };
 
-    const parsedGuess = parseInt(userGuess);
+  const handleJoinMatch = async () => {
+    if (!selectedMatch) return;
+
+    const parsedGuess = parseInt(joinGuess);
     if (isNaN(parsedGuess) || parsedGuess < 1 || parsedGuess > 100) {
       alert("Invalid guess! Please enter a number between 1 and 100.");
       return;
     }
 
     try {
-      const txHash = await joinMatch(matchId, stake, parsedGuess);
+      const txHash = await joinMatch(selectedMatch.id, selectedMatch.stake, parsedGuess);
       console.log('Joined match:', txHash);
+      setShowJoinModal(false);
+      setSelectedMatch(null);
+      setJoinGuess('50');
     } catch (err) {
       console.error('Failed to join match:', err);
     }
   };
-
   const handleWithdraw = async () => {
     try {
       const txHash = await withdraw();
@@ -162,6 +171,45 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {showJoinModal && selectedMatch && (
+          <div className="modal-overlay" onClick={() => setShowJoinModal(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <h2>Join Arena #{String(selectedMatch.id).padStart(3, '0')}</h2>
+              <div className="stake-summary">
+                <span className="label">Required Stake:</span>
+                <span className="value primary">{selectedMatch.stake} MON</span>
+              </div>
+              <div className="form-group" style={{ marginTop: '1.5rem' }}>
+                <label>Your Guess (1-100)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={joinGuess}
+                  onChange={(e) => setJoinGuess(e.target.value)}
+                  autoFocus
+                />
+                <small className="help-text">Your guess determines your fate. Choose wisely!</small>
+              </div>
+              <div className="modal-actions">
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setShowJoinModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn"
+                  onClick={handleJoinMatch}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Joining...' : 'Confirm Join'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid">
           {matches.length === 0 && !isLoading && (
             <div className="empty-state">
@@ -221,7 +269,7 @@ const App: React.FC = () => {
                 {match.status === 'Pending' && account && match.creator.toLowerCase() !== account.toLowerCase() && (
                   <button
                     className="btn btn-outline full-width"
-                    onClick={() => handleJoinMatch(match.id, match.stake)}
+                    onClick={() => handleOpenJoinModal(match.id, match.stake)}
                     disabled={isLoading}
                   >
                     {isLoading ? 'Joining...' : 'Join Arena'}
