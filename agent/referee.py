@@ -54,7 +54,7 @@ def settle_match(match_id, winner_address, target_number):
         })
         
         signed_tx = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)
-        tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         
         print(f"📤 Transaction sent: {tx_hash.hex()}")
         print(f"⏳ Waiting for confirmation...")
