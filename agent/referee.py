@@ -9,9 +9,9 @@ load_dotenv()
 
 # Configuration
 RPC_URL = os.getenv("RPC_URL", "https://testnet-rpc.monad.xyz")
-CONTRACT_ADDRESS = Web3.to_checksum_address(os.getenv("CONTRACT_ADDRESS"))
+CONTRACT_ADDRESS = Web3.to_checksum_address(os.getenv("CONTRACT_ADDRESS").lower())
 PRIVATE_KEY = os.getenv("PRIVATE_KEY")
-REFEREE_ADDRESS = Web3.to_checksum_address(os.getenv("REFEREE_ADDRESS"))
+REFEREE_ADDRESS = Web3.to_checksum_address(os.getenv("REFEREE_ADDRESS").lower())
 
 # Load ABI from local file (works in cloud deployment)
 import os
@@ -128,8 +128,8 @@ def poll_for_matches(poll_interval=5):
                     
                     try:
                         events = contract.events.MatchJoined.get_logs(
-                            from_block=start,
-                            to_block=end
+                            fromBlock=start,
+                            toBlock=end
                         )
                         
                         for event in events:
