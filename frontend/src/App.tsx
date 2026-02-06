@@ -147,9 +147,14 @@ const App: React.FC = () => {
         </div>
         <div className="nav-actions">
           {account && (
-            <button className="btn btn-outline btn-round" onClick={() => setShowProfileModal(true)}>
-              👤
-            </button>
+            <div className="user-profile-summary">
+              <span className="user-name-header">
+                {namesCache[account] || account.slice(0, 6) + '...' + account.slice(-4)}
+              </span>
+              <button className="btn btn-outline btn-round" onClick={() => setShowProfileModal(true)}>
+                👤
+              </button>
+            </div>
           )}
           <ConnectButton />
         </div>
@@ -359,7 +364,7 @@ const App: React.FC = () => {
                     <div className="player-side text-right">
                       <div className="player-info">
                         <span className="label">Opponent</span>
-                        <span className="value">
+                        <span className="value truncate">
                           {match.opponent === '0x0000000000000000000000000000000000000000'
                             ? (match.status === 'Cancelled' ? 'Cancelled' : 'Waiting...')
                             : (namesCache[match.opponent] || match.opponent.slice(0, 6) + '...' + match.opponent.slice(-4))
@@ -388,7 +393,9 @@ const App: React.FC = () => {
                       </div>
                       <div className="result-item">
                         <span className="label">Winner</span>
-                        <span className="value winner">🏆 {match.winner.slice(0, 6)}...{match.winner.slice(-4)}</span>
+                        <span className="value winner">
+                          🏆 {namesCache[match.winner] || (match.winner.slice(0, 6) + '...' + match.winner.slice(-4))}
+                        </span>
                       </div>
                     </div>
                   )}

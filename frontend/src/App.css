@@ -398,6 +398,8 @@
   align-items: center;
   gap: 0.75rem;
   flex: 1;
+  min-width: 0;
+  /* Important for flex-basis and ellipsis */
 }
 
 .player-side.text-right {
@@ -408,6 +410,8 @@
 .player-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .player-info .label {
@@ -467,6 +471,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-width: 0;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.user-profile-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.5rem 0.25rem 1rem;
+  border-radius: 2rem;
+  border: 1px solid var(--border-color);
+}
+
+.user-name-header {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .help-text {
