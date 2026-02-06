@@ -324,7 +324,7 @@ const App: React.FC = () => {
               return matchesStatus && matchesSearch;
             })
             .map((match) => (
-              <div key={match.id} className="card">
+              <div key={match.id} className={`card ${match.status === 'Settled' ? 'winner-pulse' : ''}`}>
                 <div className="card-header">
                   <span className={`badge badge-${match.status.toLowerCase()}`}>{match.status}</span>
                   <a

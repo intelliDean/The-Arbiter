@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Contract, parseEther, formatEther, BrowserProvider, JsonRpcSigner } from 'ethers';
+import { Contract, parseEther, formatEther, BrowserProvider, JsonRpcSigner, JsonRpcProvider } from 'ethers';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { ARENA_CONTRACT_ADDRESS, ARENA_ABI } from '../config';
 import { parseError } from '../utils/errorParser';
@@ -25,6 +25,19 @@ export function clientToProvider(publicClient: any) {
         name: chain.name,
         ensAddress: chain.contracts?.ensRegistry?.address,
     };
+
+    // If it's an HTTP transport, use JsonRpcProvider
+    if (transport.type === 'http') {
+        return new JsonRpcProvider(transport.url, network);
+    }
+
+    // If it's a fallback transport, use the first successful URL
+    if (transport.type === 'fallback') {
+        const url = transport.transports?.[0]?.value?.url || transport.url;
+        if (url) return new JsonRpcProvider(url, network);
+    }
+
+    // Fallback to BrowserProvider for EIP-1193 or if we can't find a URL
     return new BrowserProvider(transport, network);
 }
 
