@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Contract, parseEther, formatEther, BrowserProvider, JsonRpcSigner } from 'ethers';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
-import { ARENA_CONTRACT_ADDRESS, ARENA_ABI, REFEREE_ADDRESS } from '../config';
+import { ARENA_CONTRACT_ADDRESS, ARENA_ABI } from '../config';
 
 export interface Match {
     id: number;
