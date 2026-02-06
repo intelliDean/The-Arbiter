@@ -311,6 +311,80 @@
   font-weight: 700;
 }
 
+.badge-active {
+  background: #3b82f6;
+  color: white;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.active-animation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 1rem;
+  border: 1px dashed rgba(59, 130, 246, 0.3);
+}
+
+.versus-badge {
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: #3b82f6;
+  letter-spacing: 0.2rem;
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.ongoing-animation {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 50%;
+  animation: pulse-dot 1.5s infinite;
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+}
+
 .help-text {
   display: block;
   margin-top: 0.5rem;

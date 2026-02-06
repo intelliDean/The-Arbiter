@@ -30,7 +30,7 @@ const App: React.FC = () => {
   const [stakeAmount, setStakeAmount] = useState('0.1');
   const [guess, setGuess] = useState('50');
   const [joinGuess, setJoinGuess] = useState('50');
-  const [filterStatus, setFilterStatus] = useState<'All' | 'Pending' | 'Active' | 'Settled'>('All');
+  const [filterStatus, setFilterStatus] = useState<'All' | 'Pending' | 'Active' | 'Settled' | 'Cancelled'>('All');
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const addNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -152,7 +152,7 @@ const App: React.FC = () => {
 
         <section className="dashboard-controls">
           <div className="filter-tabs">
-            {['All', 'Pending', 'Active', 'Settled'].map((status) => (
+            {['All', 'Pending', 'Active', 'Settled', 'Cancelled'].map((status) => (
               <button
                 key={status}
                 className={`tab-btn ${filterStatus === status ? 'active' : ''}`}
@@ -296,7 +296,7 @@ const App: React.FC = () => {
                       <span className="label">Opponent:</span>
                       <span className="value">
                         {match.opponent === '0x0000000000000000000000000000000000000000'
-                          ? 'Waiting...'
+                          ? (match.status === 'Cancelled' ? 'Cancelled' : 'Waiting...')
                           : `${match.opponent.slice(0, 6)}...${match.opponent.slice(-4)}`
                         }
                         {match.opponent !== '0x0000000000000000000000000000000000000000' && match.status === 'Settled' && (
@@ -319,6 +319,15 @@ const App: React.FC = () => {
                           </span>
                         </div>
                       </>
+                    )}
+                    {match.status === 'Active' && (
+                      <div className="active-animation-container">
+                        <div className="versus-badge">VS</div>
+                        <div className="ongoing-animation">
+                          <span className="pulse-dot"></span>
+                          Arbiter is resolving fate...
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
