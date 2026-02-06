@@ -65,6 +65,45 @@ def settle_match(match_id, winner_address, target_number):
     except Exception as e:
         print(f"❌ Error during settlement: {e}")
 
+def withdraw_platform_fees():
+    """
+    Withdraw platform fees from the contract.
+    """
+    if not PRIVATE_KEY or PRIVATE_KEY == "YOUR_PRIVATE_KEY_HERE":
+        return
+
+    print("💰 Attempting daily platform fee withdrawal...")
+    try:
+        # Check if there are fees to withdraw
+        total_fees = contract.functions.totalFees().call()
+        if total_fees == 0:
+            print("ℹ️  No fees available to withdraw.")
+            return
+
+        gas_price = int(w3.eth.gas_price * 1.2)
+        nonce = w3.eth.get_transaction_count(REFEREE_ADDRESS)
+        chain_id = 10143
+
+        tx = contract.functions.withdrawFees().build_transaction({
+            'from': REFEREE_ADDRESS,
+            'nonce': nonce,
+            'gas': 200000,
+            'gasPrice': gas_price,
+            'chainId': chain_id
+        })
+
+        signed_tx = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)
+        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        print(f"📤 Fee withdrawal transaction sent: {tx_hash.hex()}")
+        
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+        if receipt.status == 1:
+            print(f"✅ Fees successfully withdrawn in block {receipt.blockNumber}")
+        else:
+            print(f"❌ Fee withdrawal failed (Transaction reverted)")
+    except Exception as e:
+        print(f"❌ Error during fee withdrawal: {e}")
+
 def simulate_game_outcome(creator, opponent):
     """
     Simulate a game result. In production, this would:
@@ -106,14 +145,21 @@ def poll_for_matches(poll_interval=5):
     print("👀 Monitoring blockchain for new matches...\n")
     
     processed_matches = set()
+    last_fee_withdrawal_day = -1
     
     # Look back up to 5,000 blocks on startup to catch missed events during redeploy
     current_block = w3.eth.block_number
     last_block = max(0, current_block - 5000)
-    print(f"🔄 Startup: Looking back to block {last_block} to catch missed matches...")
+    print(f"🔄 Startup: Looking back to block {last_block} catch missed matches...")
     
     while True:
         try:
+            # Daily Fee Withdrawal Logic (at 12 AM UTC)
+            current_time = time.gmtime()
+            if current_time.tm_hour == 0 and current_time.tm_mday != last_fee_withdrawal_day:
+                withdraw_platform_fees()
+                last_fee_withdrawal_day = current_time.tm_mday
+
             current_block = w3.eth.block_number
             
             if current_block > last_block:

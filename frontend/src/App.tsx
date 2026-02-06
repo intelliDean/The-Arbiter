@@ -24,8 +24,16 @@ const App: React.FC = () => {
     createMatch,
     joinMatch,
     withdraw,
-    cancelMatch
+    cancelMatch,
+    emergencyClaim
   } = useArena();
+
+  const [currentTime, setCurrentTime] = useState(Math.floor(Date.now() / 1000));
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(Math.floor(Date.now() / 1000)), 10000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Resolve names for matches
   useEffect(() => {
@@ -120,6 +128,17 @@ const App: React.FC = () => {
       console.log('Match cancelled:', txHash);
     } catch (err: any) {
       console.error('Failed to cancel match:', err);
+      addNotification(parseError(err), 'error');
+    }
+  };
+
+  const handleEmergencyClaim = async (matchId: number) => {
+    try {
+      const txHash = await emergencyClaim(matchId);
+      addNotification('Emergency claim successful! Stakes refunded.', 'success');
+      console.log('Emergency claim:', txHash);
+    } catch (err: any) {
+      console.error('Failed to claim emergency refund:', err);
       addNotification(parseError(err), 'error');
     }
   };
@@ -434,9 +453,21 @@ const App: React.FC = () => {
                     </button>
                   )}
                   {match.status === 'Active' && (
-                    <button className="btn btn-outline full-width disabled">
-                      Match In Progress
-                    </button>
+                    <>
+                      <button className="btn btn-outline full-width disabled">
+                        Match In Progress
+                      </button>
+                      {currentTime > match.lastUpdate + 86400 && (
+                        <button
+                          className="btn btn-danger btn-sm full-width"
+                          style={{ marginTop: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)' }}
+                          onClick={() => handleEmergencyClaim(match.id)}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? 'Claiming...' : '⚠️ Claim Refund (Stuck)'}
+                        </button>
+                      )}
+                    </>
                   )}
                   {match.status === 'Settled' && (
                     <button className="btn btn-outline full-width disabled">

@@ -212,6 +212,28 @@ export const useArena = () => {
         }
     };
 
+    const emergencyClaim = async (matchId: number) => {
+        if (!account || !walletClient) throw new Error('Wallet not connected');
+
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const contract = await getContract(true);
+            const tx = await contract.emergencyClaim(matchId);
+
+            await tx.wait();
+            await fetchMatches();
+
+            return tx.hash;
+        } catch (err: any) {
+            setError(parseError(err));
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // Auto-fetch matches and withdrawal balance
     useEffect(() => {
         if (publicClient) {
@@ -247,6 +269,7 @@ export const useArena = () => {
         joinMatch,
         withdraw,
         cancelMatch,
+        emergencyClaim,
         refreshMatches: fetchMatches,
     };
 };
