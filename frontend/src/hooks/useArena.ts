@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Contract, parseEther, formatEther, BrowserProvider, JsonRpcSigner, JsonRpcProvider } from 'ethers';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { ARENA_CONTRACT_ADDRESS, ARENA_ABI } from '../config';
@@ -88,10 +88,13 @@ export const useArena = () => {
         return new Contract(ARENA_CONTRACT_ADDRESS, ARENA_ABI, provider);
     }, [publicClient, walletClient]);
 
+    const fetchingRef = useRef(false);
+
     const fetchMatches = useCallback(async () => {
-        if (!publicClient) return;
+        if (!publicClient || fetchingRef.current) return;
 
         try {
+            fetchingRef.current = true;
             const contract = await getContract();
             const nextMatchId = Number(await contract.nextMatchId());
 
@@ -101,20 +104,19 @@ export const useArena = () => {
             const statusMap = ['Pending', 'Active', 'Settled', 'Cancelled', 'Draw'];
 
             const results = [];
-            const batchSize = 10;
-            for (let i = startIndex; i < nextMatchId; i += batchSize) {
-                const batchPromises = [];
-                const end = Math.min(i + batchSize, nextMatchId);
-                for (let j = i; j < end; j++) {
-                    batchPromises.push(contract.matches(j));
+            for (let i = startIndex; i < nextMatchId; i++) {
+                try {
+                    const match = await contract.matches(i);
+                    results.push(match);
+                } catch (retryErr) {
+                    // Try one more time after a longer delay if it fails
+                    console.warn(`Retry fetching match ${i}...`, retryErr);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    results.push(await contract.matches(i));
                 }
-                const batchResults = await Promise.all(batchPromises);
-                results.push(...batchResults);
 
-                // Small delay to prevent hitting the 25/sec rate limit
-                if (i + batchSize < nextMatchId) {
-                    await new Promise(resolve => setTimeout(resolve, 200));
-                }
+                // Small delay to be super safe (max 20 requests per sec)
+                await new Promise(resolve => setTimeout(resolve, 50));
             }
 
             let matchesData: Match[] = results.map(match => ({
@@ -139,6 +141,8 @@ export const useArena = () => {
         } catch (err: any) {
             console.error('Error fetching matches:', err);
             setError(err.message);
+        } finally {
+            fetchingRef.current = false;
         }
     }, [publicClient, getContract, showHistory]);
 

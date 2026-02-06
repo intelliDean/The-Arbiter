@@ -48,15 +48,11 @@ const App: React.FC = () => {
         if (m.winner !== '0x0000000000000000000000000000000000000000') addresses.add(m.winner);
       });
 
-      // Resolve in small batches to stay under 25/sec limit
       const addressArray = Array.from(addresses).filter(addr => !namesCache[addr]);
-      for (let i = 0; i < addressArray.length; i += 5) {
-        const batch = addressArray.slice(i, i + 5);
-        await Promise.all(batch.map(addr => resolveName(addr)));
-        // Tiny wait between batches if there are more
-        if (i + 5 < addressArray.length) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
+      // Resolve names sequentially to be super safe with RPC limits
+      for (const addr of addressArray) {
+        await resolveName(addr);
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     };
 
