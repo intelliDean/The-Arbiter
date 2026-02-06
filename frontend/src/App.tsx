@@ -349,7 +349,7 @@ const App: React.FC = () => {
                       <div className="player-avatar" style={{ backgroundColor: getDeterministicAvatar(match.creator) }}></div>
                       <div className="player-info">
                         <span className="label">Creator</span>
-                        <div className="player-name-container">
+                        <div className="player-name-container creator-side">
                           <span className="player-name">
                             {namesCache[match.creator] || match.creator.slice(0, 6) + '...' + match.creator.slice(-4)}
                           </span>
@@ -369,7 +369,7 @@ const App: React.FC = () => {
                     <div className="player-side text-right">
                       <div className="player-info">
                         <span className="label">Opponent</span>
-                        <div className="player-name-container">
+                        <div className="player-name-container opponent-side">
                           <span className="player-name">
                             {match.opponent === '0x0000000000000000000000000000000000000000'
                               ? (match.status === 'Cancelled' ? 'Cancelled' : 'Waiting...')

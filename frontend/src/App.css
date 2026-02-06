@@ -538,10 +538,18 @@
 
 .player-name-container {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.25rem;
   min-width: 0;
   margin-top: 0.1rem;
+}
+
+.player-name-container.creator-side {
+  align-items: flex-start;
+}
+
+.player-name-container.opponent-side {
+  align-items: flex-end;
 }
 
 .player-name {
@@ -557,15 +565,15 @@
 
 .guess-tag {
   background: rgba(168, 85, 247, 0.15);
-  padding: 0.1rem 0.4rem;
+  padding: 0.15rem 0.5rem;
   border-radius: 0.35rem;
   color: #c084fc;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   flex-shrink: 0;
-  /* Never hide the guess */
   white-space: nowrap;
   border: 1px solid rgba(168, 85, 247, 0.3);
+  line-height: 1;
 }
 
 .user-profile-summary {
