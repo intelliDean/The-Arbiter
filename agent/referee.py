@@ -36,11 +36,9 @@ def settle_match(match_id, winner_address, target_number):
     print(f"⚖️  Settling match {match_id} with winner {winner_address} (Target: {target_number})...")
     
     try:
-        nonce = w3.eth.get_transaction_count(REFEREE_ADDRESS)
-        
         # Get current gas price and add 20% buffer for Monad testnet
-        base_gas_price = w3.eth.gas_price
-        gas_price = int(base_gas_price * 1.2)
+        gas_price = int(w3.eth.gas_price * 1.2)  # Add 20% buffer for Monad testnet
+        nonce = w3.eth.get_transaction_count(REFEREE_ADDRESS)
         
         # Monad Testnet Chain ID
         chain_id = 10143
@@ -163,8 +161,15 @@ def poll_for_matches(poll_interval=5):
                                 diff_creator = abs(creator_guess - target_number)
                                 diff_opponent = abs(opponent_guess - target_number)
 
-                                winner = creator if diff_creator <= diff_opponent else opponent
-                                print(f"🏆 Winner determined: {winner} (Diff: {min(diff_creator, diff_opponent)})")
+                                if diff_creator < diff_opponent:
+                                    winner = creator
+                                    print(f"🏆 Winner determined: {winner} (Diff: {diff_creator})")
+                                elif diff_opponent < diff_creator:
+                                    winner = opponent
+                                    print(f"🏆 Winner determined: {winner} (Diff: {diff_opponent})")
+                                else:
+                                    winner = "0x0000000000000000000000000000000000000000"
+                                    print(f"🤝 It's a DRAW! (Both diffs: {diff_creator})")
 
                                 # Settle with target number
                                 settle_match(match_id, winner, target_number)

@@ -9,7 +9,7 @@ export interface Match {
     creator: string;
     opponent: string;
     stake: string;
-    status: 'Pending' | 'Active' | 'Settled' | 'Cancelled';
+    status: 'Pending' | 'Active' | 'Settled' | 'Cancelled' | 'Draw';
     winner: string;
     lastUpdate: number;
     creatorGuess: number;
@@ -85,7 +85,7 @@ export const useArena = () => {
 
             for (let i = 0; i < Number(nextMatchId); i++) {
                 const match = await contract.matches(i);
-                const statusMap = ['Pending', 'Active', 'Settled', 'Cancelled'];
+                const statusMap = ['Pending', 'Active', 'Settled', 'Cancelled', 'Draw'];
 
                 matchesData.push({
                     id: Number(match[0]),

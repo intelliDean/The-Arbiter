@@ -153,3 +153,8 @@ body {
 .winner-pulse {
   animation: winner-pulse 2s infinite;
 }
+
+.draw-text {
+  color: #94a3b8;
+  font-style: italic;
+}

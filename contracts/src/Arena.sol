@@ -36,8 +36,6 @@ contract Arena {
         _;
     }
 
-
-
     constructor(address _referee) {
         owner = msg.sender;
         officialReferee = _referee;
@@ -75,12 +73,14 @@ contract Arena {
         emit Utils.MatchCreated(matchId, msg.sender, msg.value, _guess);
         return matchId;
     }
+
     /**
      * @dev Join a pending match by matching the stake.
      */
     function joinMatch(uint256 _matchId, uint256 _guess) external payable {
         Utils.Match storage m = matches[_matchId];
-        if (m.status != Utils.MatchStatus.Pending) revert Utils.MATCH_NOT_PENDING();
+        if (m.status != Utils.MatchStatus.Pending)
+            revert Utils.MATCH_NOT_PENDING();
         if (msg.value != m.stake) revert Utils.INCORRECT_STAKE();
         if (msg.sender == m.creator) revert Utils.CANNOT_JOIN_OWN_MATCH();
         if (_guess == 0 || _guess > 100) revert Utils.INVALID_GUESS();
@@ -96,24 +96,59 @@ contract Arena {
     /**
      * @dev Settle a match. Winnings are moved to pendingWithdrawals.
      */
-    function settleMatch(uint256 _matchId, address _winner, uint256 _targetNumber) external {
+    function settleMatch(
+        uint256 _matchId,
+        address _winner,
+        uint256 _targetNumber
+    ) external {
         Utils.Match storage m = matches[_matchId];
-        if (m.status != Utils.MatchStatus.Active) revert Utils.MATCH_NOT_ACTIVE();
-        if (msg.sender != officialReferee) revert Utils.ONLY_REFEREE_CAN_SETTLE();
-        if (_winner != m.creator && _winner != m.opponent) revert Utils.WINNER_MUST_BE_PARTICIPANT();
+        if (m.status != Utils.MatchStatus.Active)
+            revert Utils.MATCH_NOT_ACTIVE();
+        if (msg.sender != officialReferee)
+            revert Utils.ONLY_REFEREE_CAN_SETTLE();
 
-        m.status = Utils.MatchStatus.Settled;
-        m.winner = _winner;
-        m.targetNumber = _targetNumber;
-        m.lastUpdate = block.timestamp;
         uint256 totalPool = m.stake * 2;
         uint256 fee = (totalPool * FEE_BPS) / 10000;
         uint256 prize = totalPool - fee;
-
         totalFees += fee;
-        pendingWithdrawals[_winner] += prize;
 
-        emit Utils.MatchSettled(_matchId, _winner, prize, fee, _targetNumber);
+        if (_winner == address(0)) {
+            // DRAW: Split prize pool between creator and opponent
+            m.status = Utils.MatchStatus.Draw;
+            m.targetNumber = _targetNumber;
+            m.lastUpdate = block.timestamp;
+
+            uint256 halfPrize = prize / 2;
+            pendingWithdrawals[m.creator] += halfPrize;
+            pendingWithdrawals[m.opponent] += halfPrize;
+
+            emit Utils.MatchSettled(
+                _matchId,
+                address(0),
+                prize,
+                fee,
+                _targetNumber
+            );
+        } else {
+            // WINNER: Standard settlement
+            if (_winner != m.creator && _winner != m.opponent)
+                revert Utils.WINNER_MUST_BE_PARTICIPANT();
+
+            m.status = Utils.MatchStatus.Settled;
+            m.winner = _winner;
+            m.targetNumber = _targetNumber;
+            m.lastUpdate = block.timestamp;
+
+            pendingWithdrawals[_winner] += prize;
+
+            emit Utils.MatchSettled(
+                _matchId,
+                _winner,
+                prize,
+                fee,
+                _targetNumber
+            );
+        }
     }
 
     /**
@@ -124,7 +159,7 @@ contract Arena {
         if (amount == 0) revert Utils.NOTHING_TO_WITHDRAW();
 
         pendingWithdrawals[msg.sender] = 0;
-        (bool success,) = msg.sender.call{value: amount}("");
+        (bool success, ) = msg.sender.call{value: amount}("");
         if (!success) revert Utils.TRANSFER_FAILED();
 
         emit Utils.WinningsWithdrawn(msg.sender, amount);
@@ -135,13 +170,14 @@ contract Arena {
      */
     function cancelMatch(uint256 _matchId) external nonReentrant {
         Utils.Match storage m = matches[_matchId];
-        if (m.status != Utils.MatchStatus.Pending) revert Utils.ONLY_PENDING_MATCHES_CAN_BE_CANCELLED();
+        if (m.status != Utils.MatchStatus.Pending)
+            revert Utils.ONLY_PENDING_MATCHES_CAN_BE_CANCELLED();
         if (msg.sender != m.creator) revert Utils.ONLY_CREATOR_CAN_CANCEL();
 
         m.status = Utils.MatchStatus.Cancelled;
         m.lastUpdate = block.timestamp;
 
-        (bool success,) = m.creator.call{value: m.stake}("");
+        (bool success, ) = m.creator.call{value: m.stake}("");
         if (!success) revert Utils.REFUND_FAILED();
 
         emit Utils.MatchCancelled(_matchId);
@@ -152,8 +188,10 @@ contract Arena {
      */
     function emergencyClaim(uint256 _matchId) external nonReentrant {
         Utils.Match storage m = matches[_matchId];
-        if (m.status != Utils.MatchStatus.Active) revert Utils.MATCH_NOT_ACTIVE();
-        if (block.timestamp < m.lastUpdate + TIMEOUT) revert Utils.TIMEOUT_NOT_REACHED();
+        if (m.status != Utils.MatchStatus.Active)
+            revert Utils.MATCH_NOT_ACTIVE();
+        if (block.timestamp < m.lastUpdate + TIMEOUT)
+            revert Utils.TIMEOUT_NOT_REACHED();
 
         m.status = Utils.MatchStatus.Cancelled;
 
@@ -161,8 +199,8 @@ contract Arena {
         address creator = m.creator;
         address opponent = m.opponent;
 
-        (bool s1,) = creator.call{value: amount}("");
-        (bool s2,) = opponent.call{value: amount}("");
+        (bool s1, ) = creator.call{value: amount}("");
+        (bool s2, ) = opponent.call{value: amount}("");
 
         if (!s1 || !s2) revert Utils.REFUND_FAILED();
 
@@ -177,7 +215,7 @@ contract Arena {
         if (amount == 0) revert Utils.NOTHING_TO_WITHDRAW();
 
         totalFees = 0;
-        (bool success,) = owner.call{value: amount}("");
+        (bool success, ) = owner.call{value: amount}("");
         if (!success) revert Utils.TRANSFER_FAILED();
 
         emit Utils.FeesWithdrawn(owner, amount);
@@ -186,11 +224,8 @@ contract Arena {
     receive() external payable {}
 }
 
-
-
 // Deployer: 0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
 // Deployed to: 0x0d3Df5C18cc48099a3a829E56D1628afb904f278
 // Transaction hash: 0x3ffcee138ad57991422dd2ca8b2489884f502844b7d746770b5ff5da5891ecc6
-
 
 // cast call 0x0d3Df5C18cc48099a3a829E56D1628afb904f278 "owner()(address)" --rpc-url https://testnet-rpc.monad.xyz

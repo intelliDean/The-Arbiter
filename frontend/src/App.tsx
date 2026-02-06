@@ -34,6 +34,9 @@ const App: React.FC = () => {
       if (m.opponent !== '0x0000000000000000000000000000000000000000') {
         resolveName(m.opponent);
       }
+      if (m.winner !== '0x0000000000000000000000000000000000000000') {
+        resolveName(m.winner);
+      }
     });
   }, [matches, resolveName]);
 
@@ -324,7 +327,7 @@ const App: React.FC = () => {
               return matchesStatus && matchesSearch;
             })
             .map((match) => (
-              <div key={match.id} className={`card ${match.status === 'Settled' ? 'winner-pulse' : ''}`}>
+              <div key={match.id} className={`card ${(match.status === 'Settled' || match.status === 'Draw') ? 'winner-pulse' : ''}`}>
                 <div className="card-header">
                   <span className={`badge badge-${match.status.toLowerCase()}`}>{match.status}</span>
                   <a
@@ -350,7 +353,7 @@ const App: React.FC = () => {
                           <span className="player-name">
                             {namesCache[match.creator] || match.creator.slice(0, 6) + '...' + match.creator.slice(-4)}
                           </span>
-                          {(match.status === 'Active' || match.status === 'Settled') && (
+                          {(match.status === 'Active' || match.status === 'Settled' || match.status === 'Draw') && (
                             <span className="guess-tag">({match.creatorGuess})</span>
                           )}
                         </div>
@@ -374,7 +377,7 @@ const App: React.FC = () => {
                             }
                           </span>
                           {match.opponent !== '0x0000000000000000000000000000000000000000' &&
-                            (match.status === 'Active' || match.status === 'Settled') && (
+                            (match.status === 'Active' || match.status === 'Settled' || match.status === 'Draw') && (
                               <span className="guess-tag">({match.opponentGuess})</span>
                             )}
                         </div>
@@ -390,17 +393,23 @@ const App: React.FC = () => {
                     </div>
                   )}
 
-                  {match.status === 'Settled' && (
+                  {(match.status === 'Settled' || match.status === 'Draw') && (
                     <div className="settlement-results">
                       <div className="result-item">
                         <span className="label">Arbiter Secret</span>
                         <span className="value arbiter-number">🎯 {match.targetNumber}</span>
                       </div>
                       <div className="result-item">
-                        <span className="label">Winner</span>
-                        <span className="value winner">
-                          🏆 {namesCache[match.winner] || (match.winner.slice(0, 6) + '...' + match.winner.slice(-4))}
-                        </span>
+                        {match.status === 'Draw' ? (
+                          <span className="value winner draw-text">🤝 It's a DRAW! (Split Pool)</span>
+                        ) : (
+                          <>
+                            <span className="label">Winner</span>
+                            <span className="value winner">
+                              🏆 {namesCache[match.winner] || (match.winner.slice(0, 6) + '...' + match.winner.slice(-4))}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}

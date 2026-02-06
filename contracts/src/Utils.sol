@@ -24,27 +24,41 @@ library Utils {
     error NAME_TOO_LONG();
     error NAME_TOO_SHORT();
 
-
-
     //EVENTS
-    event MatchCreated(uint256 indexed matchId, address creator, uint256 stake, uint256 guess);
+    event MatchCreated(
+        uint256 indexed matchId,
+        address creator,
+        uint256 stake,
+        uint256 guess
+    );
     event MatchJoined(uint256 indexed matchId, address opponent, uint256 guess);
-    event MatchSettled(uint256 indexed matchId, address winner, uint256 prize, uint256 fee, uint256 targetNumber);
+    event MatchSettled(
+        uint256 indexed matchId,
+        address winner,
+        uint256 prize,
+        uint256 fee,
+        uint256 targetNumber
+    );
     event MatchCancelled(uint256 indexed matchId);
     event WinningsWithdrawn(address indexed player, uint256 amount);
     event FeesWithdrawn(address indexed owner, uint256 amount);
-    event EmergencyClaim(uint256 indexed matchId, address creator, address opponent);
+    event EmergencyClaim(
+        uint256 indexed matchId,
+        address creator,
+        address opponent
+    );
     event NameSet(address indexed user, string name);
 
     //OBJECTS
-    enum MatchStatus { 
-        Pending, 
-        Active, 
-        Settled, 
-        Cancelled 
+    enum MatchStatus {
+        Pending,
+        Active,
+        Settled,
+        Cancelled,
+        Draw
     }
 
-   struct Match {
+    struct Match {
         uint256 id;
         address creator;
         address opponent;
