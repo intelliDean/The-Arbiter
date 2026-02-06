@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration
-RPC_URL = os.getenv("RPC_URL", "http://127.0.0.1:8545")
-CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")
+RPC_URL = os.getenv("RPC_URL", "https://testnet-rpc.monad.xyz")
+CONTRACT_ADDRESS = Web3.to_checksum_address(os.getenv("CONTRACT_ADDRESS"))
 PRIVATE_KEY = os.getenv("PRIVATE_KEY")
-REFEREE_ADDRESS = os.getenv("REFEREE_ADDRESS")
+REFEREE_ADDRESS = Web3.to_checksum_address(os.getenv("REFEREE_ADDRESS"))
 
 # Load ABI from local file (works in cloud deployment)
 import os
@@ -54,7 +54,7 @@ def settle_match(match_id, winner_address, target_number):
         })
         
         signed_tx = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)
-        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         
         print(f"📤 Transaction sent: {tx_hash.hex()}")
         print(f"⏳ Waiting for confirmation...")
@@ -128,8 +128,8 @@ def poll_for_matches(poll_interval=5):
                     
                     try:
                         events = contract.events.MatchJoined.get_logs(
-                            fromBlock=start,
-                            toBlock=end
+                            from_block=start,
+                            to_block=end
                         )
                         
                         for event in events:

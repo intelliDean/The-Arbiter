@@ -336,56 +336,62 @@ const App: React.FC = () => {
                     <span className="label">Stake:</span>
                     <span className="value">{parseFloat(match.stake).toFixed(4)} MON</span>
                   </div>
-                  <div className="players">
-                    <div className="player">
+                  <div className="players-container">
+                    <div className="player-side">
                       <div className="player-avatar" style={{ backgroundColor: getDeterministicAvatar(match.creator) }}></div>
-                      <span className="label">Creator:</span>
-                      <span className="value">
-                        {namesCache[match.creator] || match.creator.slice(0, 6) + '...' + match.creator.slice(-4)}
-                        {match.status === 'Settled' && (
-                          <span className="guess-tag">({match.creatorGuess})</span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="player">
-                      <div className="player-avatar" style={{ backgroundColor: getDeterministicAvatar(match.opponent) }}></div>
-                      <span className="label">Opponent:</span>
-                      <span className="value">
-                        {match.opponent === '0x0000000000000000000000000000000000000000'
-                          ? (match.status === 'Cancelled' ? 'Cancelled' : 'Waiting...')
-                          : (namesCache[match.opponent] || match.opponent.slice(0, 6) + '...' + match.opponent.slice(-4))
-                        }
-                        {match.opponent !== '0x0000000000000000000000000000000000000000' && match.status === 'Settled' && (
-                          <span className="guess-tag">({match.opponentGuess})</span>
-                        )}
-                      </span>
-                    </div>
-                    {match.status === 'Settled' && (
-                      <>
-                        <div className="player">
-                          <span className="label">Arbiter Secret:</span>
-                          <span className="value arbiter-number">
-                            🎯 {match.targetNumber}
-                          </span>
-                        </div>
-                        <div className="player">
-                          <span className="label">Winner:</span>
-                          <span className="value winner">
-                            🏆 {match.winner.slice(0, 6)}...{match.winner.slice(-4)}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                    {match.status === 'Active' && (
-                      <div className="active-animation-container">
-                        <div className="versus-badge">VS</div>
-                        <div className="ongoing-animation">
-                          <span className="pulse-dot"></span>
-                          Arbiter is resolving fate...
-                        </div>
+                      <div className="player-info">
+                        <span className="label">Creator</span>
+                        <span className="value">
+                          {namesCache[match.creator] || match.creator.slice(0, 6) + '...' + match.creator.slice(-4)}
+                          {match.status === 'Settled' && (
+                            <span className="guess-tag">({match.creatorGuess})</span>
+                          )}
+                        </span>
                       </div>
-                    )}
+                    </div>
+
+                    <div className="versus-badge-container">
+                      <div className="versus-line"></div>
+                      <div className="vs-badge">VS</div>
+                      <div className="versus-line"></div>
+                    </div>
+
+                    <div className="player-side text-right">
+                      <div className="player-info">
+                        <span className="label">Opponent</span>
+                        <span className="value">
+                          {match.opponent === '0x0000000000000000000000000000000000000000'
+                            ? (match.status === 'Cancelled' ? 'Cancelled' : 'Waiting...')
+                            : (namesCache[match.opponent] || match.opponent.slice(0, 6) + '...' + match.opponent.slice(-4))
+                          }
+                          {match.opponent !== '0x0000000000000000000000000000000000000000' && match.status === 'Settled' && (
+                            <span className="guess-tag">({match.opponentGuess})</span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="player-avatar" style={{ backgroundColor: getDeterministicAvatar(match.opponent) }}></div>
+                    </div>
                   </div>
+
+                  {match.status === 'Active' && (
+                    <div className="ongoing-animation full-width justify-center">
+                      <span className="pulse-dot"></span>
+                      Arbiter is resolving fate...
+                    </div>
+                  )}
+
+                  {match.status === 'Settled' && (
+                    <div className="settlement-results">
+                      <div className="result-item">
+                        <span className="label">Arbiter Secret</span>
+                        <span className="value arbiter-number">🎯 {match.targetNumber}</span>
+                      </div>
+                      <div className="result-item">
+                        <span className="label">Winner</span>
+                        <span className="value winner">🏆 {match.winner.slice(0, 6)}...{match.winner.slice(-4)}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="card-footer">
                   {match.status === 'Pending' && account && match.creator.toLowerCase() !== account.toLowerCase() && (
