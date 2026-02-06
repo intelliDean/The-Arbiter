@@ -16,7 +16,7 @@ export const monadTestnet = defineChain({
     testnet: true,
 });
 
-export const ARENA_CONTRACT_ADDRESS = '0xBbcD22fd30EFA3c859f3C30a7224aB257D20b112' as const;
+export const ARENA_CONTRACT_ADDRESS = '0xE72Aa9D0791b2Bd42c6f6cAaFd7dC9995ce77E1a' as const;
 export const ARENA_ABI = ArenaArtifact.abi;
 export const REFEREE_ADDRESS = '0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855';
 
