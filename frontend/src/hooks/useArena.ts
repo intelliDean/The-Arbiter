@@ -17,28 +17,40 @@ export interface Match {
     targetNumber: number;
 }
 
-// Helper to convert viem client to ethers provider/signer
+// Global cache for providers to avoid redundant eth_chainId calls
+const providerCache: Record<string, JsonRpcProvider | BrowserProvider> = {};
+
 export function clientToProvider(publicClient: any) {
     const { chain, transport } = publicClient;
+    const cacheKey = `${chain.id}-${transport.url || transport.type}`;
+
+    if (providerCache[cacheKey]) {
+        return providerCache[cacheKey];
+    }
+
     const network = {
         chainId: chain.id,
         name: chain.name,
         ensAddress: chain.contracts?.ensRegistry?.address,
     };
 
+    let provider;
     // If it's an HTTP transport, use JsonRpcProvider
     if (transport.type === 'http') {
-        return new JsonRpcProvider(transport.url, network);
+        provider = new JsonRpcProvider(transport.url, network);
     }
-
     // If it's a fallback transport, use the first successful URL
-    if (transport.type === 'fallback') {
+    else if (transport.type === 'fallback') {
         const url = transport.transports?.[0]?.value?.url || transport.url;
-        if (url) return new JsonRpcProvider(url, network);
+        provider = url ? new JsonRpcProvider(url, network) : new BrowserProvider(transport, network);
+    }
+    else {
+        // Fallback to BrowserProvider for EIP-1193
+        provider = new BrowserProvider(transport, network);
     }
 
-    // Fallback to BrowserProvider for EIP-1193 or if we can't find a URL
-    return new BrowserProvider(transport, network);
+    providerCache[cacheKey] = provider;
+    return provider;
 }
 
 export function clientToSigner(walletClient: any) {
@@ -80,26 +92,30 @@ export const useArena = () => {
 
         try {
             const contract = await getContract();
-            const nextMatchId = await contract.nextMatchId();
-            const matchesData: Match[] = [];
+            const nextMatchId = Number(await contract.nextMatchId());
 
-            for (let i = 0; i < Number(nextMatchId); i++) {
-                const match = await contract.matches(i);
-                const statusMap = ['Pending', 'Active', 'Settled', 'Cancelled', 'Draw'];
+            // Only fetch the last 20 matches to avoid RPC rate limits and long load times
+            const startIndex = Math.max(0, nextMatchId - 20);
+            const statusMap = ['Pending', 'Active', 'Settled', 'Cancelled', 'Draw'];
 
-                matchesData.push({
-                    id: Number(match[0]),
-                    creator: match[1],
-                    opponent: match[2],
-                    stake: formatEther(match[3]),
-                    status: statusMap[match[4]] as Match['status'],
-                    winner: match[5],
-                    lastUpdate: Number(match[6]),
-                    creatorGuess: Number(match[7]),
-                    opponentGuess: Number(match[8]),
-                    targetNumber: Number(match[9]),
-                });
+            const matchPromises = [];
+            for (let i = startIndex; i < nextMatchId; i++) {
+                matchPromises.push(contract.matches(i));
             }
+
+            const results = await Promise.all(matchPromises);
+            const matchesData: Match[] = results.map(match => ({
+                id: Number(match[0]),
+                creator: match[1],
+                opponent: match[2],
+                stake: formatEther(match[3]),
+                status: statusMap[match[4]] as Match['status'],
+                winner: match[5],
+                lastUpdate: Number(match[6]),
+                creatorGuess: Number(match[7]),
+                opponentGuess: Number(match[8]),
+                targetNumber: Number(match[9]),
+            }));
 
             setMatches(matchesData.reverse()); // Show newest first
         } catch (err: any) {

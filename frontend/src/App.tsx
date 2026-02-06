@@ -35,18 +35,33 @@ const App: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Resolve names for matches
+  // Resolve names for matches with periodic staggering to avoid RPC rate limits
   useEffect(() => {
-    matches.forEach(m => {
-      resolveName(m.creator);
-      if (m.opponent !== '0x0000000000000000000000000000000000000000') {
-        resolveName(m.opponent);
+    const resolveAll = async () => {
+      // Get all unique addresses that need resolving
+      const addresses = new Set<string>();
+      matches.forEach(m => {
+        addresses.add(m.creator);
+        if (m.opponent !== '0x0000000000000000000000000000000000000000') addresses.add(m.opponent);
+        if (m.winner !== '0x0000000000000000000000000000000000000000') addresses.add(m.winner);
+      });
+
+      // Resolve in small batches to stay under 25/sec limit
+      const addressArray = Array.from(addresses).filter(addr => !namesCache[addr]);
+      for (let i = 0; i < addressArray.length; i += 5) {
+        const batch = addressArray.slice(i, i + 5);
+        await Promise.all(batch.map(addr => resolveName(addr)));
+        // Tiny wait between batches if there are more
+        if (i + 5 < addressArray.length) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
       }
-      if (m.winner !== '0x0000000000000000000000000000000000000000') {
-        resolveName(m.winner);
-      }
-    });
-  }, [matches, resolveName]);
+    };
+
+    if (matches.length > 0) {
+      resolveAll();
+    }
+  }, [matches, resolveName, namesCache]);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);

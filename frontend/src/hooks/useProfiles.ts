@@ -35,6 +35,7 @@ export const useProfiles = () => {
         if (namesCache[address]) return namesCache[address];
 
         try {
+            // Use a stable contract instance for read-only calls
             const contract = await getContract();
             if (!contract) return getDeterministicName(address);
 
@@ -45,6 +46,7 @@ export const useProfiles = () => {
             return finalName;
         } catch (err) {
             console.error('Error resolving name:', err);
+            // On error, return deterministic name to avoid repeated failing calls
             return getDeterministicName(address);
         }
     }, [getContract, namesCache]);
