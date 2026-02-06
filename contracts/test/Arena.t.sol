@@ -13,29 +13,30 @@ contract ArenaTest is Test {
     address public owner = address(this);
 
     function setUp() public {
-        arena = new Arena();
+        arena = new Arena(referee);
         vm.deal(creator, 10 ether);
         vm.deal(opponent, 10 ether);
     }
 
     function testCreateMatch() public {
         vm.prank(creator);
-        uint256 matchId = arena.createMatch{value: 1 ether}(referee, 42);
+        uint256 matchId = arena.createMatch{value: 1 ether}(42);
 
-        (uint256 id, address mCreator, address mOpponent, uint256 stake, address mReferee, Utils.MatchStatus status, address _unused_winner, uint256 lastUpdate, uint256 cGuess, uint256 oGuess) = arena.matches(matchId);
+        (uint256 id, address mCreator, address mOpponent, uint256 stake, Utils.MatchStatus status, address _unused_winner, uint256 lastUpdate, uint256 cGuess, uint256 oGuess, uint256 tNumber) = arena.matches(matchId);
 
         assertEq(id, 0);
         assertEq(mCreator, creator);
         assertEq(mOpponent, address(0));
         assertEq(stake, 1 ether);
-        assertEq(mReferee, referee);
         assertTrue(status == Utils.MatchStatus.Pending);
         assertEq(lastUpdate, block.timestamp);
+        assertEq(cGuess, 42);
+        assertEq(tNumber, 0);
     }
 
     function testSettleMatchWithFees() public {
         vm.prank(creator);
-        uint256 matchId = arena.createMatch{value: 1 ether}(referee, 42);
+        uint256 matchId = arena.createMatch{value: 1 ether}(42);
 
         vm.prank(opponent);
         arena.joinMatch{value: 1 ether}(matchId, 50);
@@ -60,7 +61,7 @@ contract ArenaTest is Test {
 
     function testEmergencyClaim() public {
         vm.prank(creator);
-        uint256 matchId = arena.createMatch{value: 1 ether}(referee, 42);
+        uint256 matchId = arena.createMatch{value: 1 ether}(42);
 
         vm.prank(opponent);
         arena.joinMatch{value: 1 ether}(matchId, 50);
@@ -80,13 +81,13 @@ contract ArenaTest is Test {
         assertEq(creator.balance, cBalBefore + 1 ether);
         assertEq(opponent.balance, oBalBefore + 1 ether);
         
-        (, , , , , Utils.MatchStatus status, , , , ) = arena.matches(matchId);
+        (, , , , Utils.MatchStatus status, , , , , ) = arena.matches(matchId);
         assertTrue(status == Utils.MatchStatus.Cancelled);
     }
 
     function testWithdrawFees() public {
         vm.prank(creator);
-        uint256 matchId = arena.createMatch{value: 1 ether}(referee, 42);
+        uint256 matchId = arena.createMatch{value: 1 ether}(42);
         vm.prank(opponent);
         arena.joinMatch{value: 1 ether}(matchId, 50);
         vm.prank(referee);

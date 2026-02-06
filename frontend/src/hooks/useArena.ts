@@ -8,12 +8,12 @@ export interface Match {
     creator: string;
     opponent: string;
     stake: string;
-    referee: string;
     status: 'Pending' | 'Active' | 'Settled' | 'Cancelled';
     winner: string;
     lastUpdate: number;
     creatorGuess: number;
     opponentGuess: number;
+    targetNumber: number;
 }
 
 // Helper to convert viem client to ethers provider/signer
@@ -78,12 +78,12 @@ export const useArena = () => {
                     creator: match[1],
                     opponent: match[2],
                     stake: formatEther(match[3]),
-                    referee: match[4],
-                    status: statusMap[match[5]] as Match['status'],
-                    winner: match[6],
-                    lastUpdate: Number(match[7]),
-                    creatorGuess: Number(match[8]),
-                    opponentGuess: Number(match[9]),
+                    status: statusMap[match[4]] as Match['status'],
+                    winner: match[5],
+                    lastUpdate: Number(match[6]),
+                    creatorGuess: Number(match[7]),
+                    opponentGuess: Number(match[8]),
+                    targetNumber: Number(match[9]),
                 });
             }
 
@@ -114,7 +114,7 @@ export const useArena = () => {
             setError(null);
 
             const contract = await getContract(true);
-            const tx = await contract.createMatch(REFEREE_ADDRESS, guess, {
+            const tx = await contract.createMatch(guess, {
                 value: parseEther(stakeAmount),
             });
 

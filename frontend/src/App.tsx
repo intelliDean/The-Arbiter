@@ -256,12 +256,20 @@ const App: React.FC = () => {
                     </span>
                   </div>
                   {match.status === 'Settled' && (
-                    <div className="player">
-                      <span className="label">Winner:</span>
-                      <span className="value winner">
-                        🏆 {match.winner.slice(0, 6)}...{match.winner.slice(-4)}
-                      </span>
-                    </div>
+                    <>
+                      <div className="player">
+                        <span className="label">Arbiter Secret:</span>
+                        <span className="value arbiter-number">
+                          🎯 {match.targetNumber}
+                        </span>
+                      </div>
+                      <div className="player">
+                        <span className="label">Winner:</span>
+                        <span className="value winner">
+                          🏆 {match.winner.slice(0, 6)}...{match.winner.slice(-4)}
+                        </span>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>

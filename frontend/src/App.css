@@ -242,3 +242,9 @@
   font-weight: 700;
   font-size: 1.25rem;
 }
+
+.arbiter-number {
+  color: #3b82f6; /* Bright blue for the secret number */
+  font-weight: 700;
+  font-size: 1.1rem;
+}

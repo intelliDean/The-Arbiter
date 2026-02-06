@@ -9,6 +9,7 @@ import "./Utils.sol";
  */
 contract Arena {
     address public owner;
+    address public officialReferee;
     uint256 public nextMatchId;
     mapping(uint256 => Utils.Match) public matches;
 
@@ -37,16 +38,24 @@ contract Arena {
 
 
 
-    constructor() {
+    constructor(address _referee) {
         owner = msg.sender;
+        officialReferee = _referee;
+    }
+
+    /**
+     * @dev Update the official referee address.
+     */
+    function setOfficialReferee(address _newReferee) external onlyOwner {
+        if (_newReferee == address(0)) revert Utils.INVALID_REFEREE();
+        officialReferee = _newReferee;
     }
 
     /**
      * @dev Create a new match with a specific stake and referee.
      */
-    function createMatch(address _referee, uint256 _guess) external payable returns (uint256) {
+    function createMatch(uint256 _guess) external payable returns (uint256) {
         if (msg.value == 0) revert Utils.MUST_BE_GREATER_THAN_ZERO();
-        if (_referee == address(0)) revert Utils.INVALID_REFEREE();
         if (_guess == 0 || _guess > 100) revert Utils.INVALID_GUESS();
 
         uint256 matchId = nextMatchId++;
@@ -55,18 +64,17 @@ contract Arena {
             creator: msg.sender,
             opponent: address(0),
             stake: msg.value,
-            referee: _referee,
             status: Utils.MatchStatus.Pending,
             winner: address(0),
             lastUpdate: block.timestamp,
             creatorGuess: _guess,
-            opponentGuess: 0
+            opponentGuess: 0,
+            targetNumber: 0
         });
 
-        emit Utils.MatchCreated(matchId, msg.sender, msg.value, _referee, _guess);
+        emit Utils.MatchCreated(matchId, msg.sender, msg.value, _guess);
         return matchId;
     }
-
     /**
      * @dev Join a pending match by matching the stake.
      */
@@ -91,13 +99,13 @@ contract Arena {
     function settleMatch(uint256 _matchId, address _winner, uint256 _targetNumber) external {
         Utils.Match storage m = matches[_matchId];
         if (m.status != Utils.MatchStatus.Active) revert Utils.MATCH_NOT_ACTIVE();
-        if (msg.sender != m.referee) revert Utils.ONLY_REFEREE_CAN_SETTLE();
+        if (msg.sender != officialReferee) revert Utils.ONLY_REFEREE_CAN_SETTLE();
         if (_winner != m.creator && _winner != m.opponent) revert Utils.WINNER_MUST_BE_PARTICIPANT();
 
         m.status = Utils.MatchStatus.Settled;
         m.winner = _winner;
+        m.targetNumber = _targetNumber;
         m.lastUpdate = block.timestamp;
-
         uint256 totalPool = m.stake * 2;
         uint256 fee = (totalPool * FEE_BPS) / 10000;
         uint256 prize = totalPool - fee;

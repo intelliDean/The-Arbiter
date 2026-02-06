@@ -6,9 +6,10 @@ import "../src/Arena.sol";
 
 contract DeployArena is Script {
     function run() external returns (Arena) {
+        address referee = vm.envAddress("REFEREE_ADDRESS");
         vm.startBroadcast();
         
-        Arena arena = new Arena();
+        Arena arena = new Arena(referee);
         
         vm.stopBroadcast();
         

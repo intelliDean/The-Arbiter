@@ -143,12 +143,12 @@ def poll_for_matches(poll_interval=5):
                             print(f"   Match ID: {match_id}")
                             print(f"   Opponent: {opponent}")
                             
-                            # Fetch match details (now with guesses)
+                            # Fetch match details (now with guesses and without referee slot)
                             match_data = contract.functions.matches(match_id).call()
                             creator = match_data[1]
                             stake = match_data[3]
-                            creator_guess = match_data[8]
-                            opponent_guess = match_data[9]
+                            creator_guess = match_data[7]
+                            opponent_guess = match_data[8]
                             
                             print(f"   Creator: {creator} (Guess: {creator_guess})")
                             print(f"   Opponent: {opponent} (Guess: {opponent_guess})")

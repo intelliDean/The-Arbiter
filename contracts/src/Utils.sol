@@ -23,7 +23,7 @@ library Utils {
 
 
     //EVENTS
-    event MatchCreated(uint256 indexed matchId, address creator, uint256 stake, address referee, uint256 guess);
+    event MatchCreated(uint256 indexed matchId, address creator, uint256 stake, uint256 guess);
     event MatchJoined(uint256 indexed matchId, address opponent, uint256 guess);
     event MatchSettled(uint256 indexed matchId, address winner, uint256 prize, uint256 fee, uint256 targetNumber);
     event MatchCancelled(uint256 indexed matchId);
@@ -44,11 +44,11 @@ library Utils {
         address creator;
         address opponent;
         uint256 stake;
-        address referee;
         MatchStatus status;
         address winner;
         uint256 lastUpdate;
         uint256 creatorGuess;
         uint256 opponentGuess;
+        uint256 targetNumber;
     }
 }
