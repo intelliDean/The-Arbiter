@@ -189,8 +189,8 @@ contract Arena {
 
 
 // Deployer: 0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
-// Deployed to: 0xE72Aa9D0791b2Bd42c6f6cAaFd7dC9995ce77E1a
+// Deployed to: 0x0d3Df5C18cc48099a3a829E56D1628afb904f278
 // Transaction hash: 0x3ffcee138ad57991422dd2ca8b2489884f502844b7d746770b5ff5da5891ecc6
 
 
-// cast call 0xE72Aa9D0791b2Bd42c6f6cAaFd7dC9995ce77E1a "owner()(address)" --rpc-url https://testnet-rpc.monad.xyz
+// cast call 0x0d3Df5C18cc48099a3a829E56D1628afb904f278 "owner()(address)" --rpc-url https://testnet-rpc.monad.xyz

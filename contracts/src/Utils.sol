@@ -20,6 +20,10 @@ library Utils {
     error ONLY_OWNER();
     error REENTRANCY();
     error INVALID_GUESS();
+    error NAME_ALREADY_TAKEN();
+    error NAME_TOO_LONG();
+    error NAME_TOO_SHORT();
+
 
 
     //EVENTS
@@ -30,6 +34,7 @@ library Utils {
     event WinningsWithdrawn(address indexed player, uint256 amount);
     event FeesWithdrawn(address indexed owner, uint256 amount);
     event EmergencyClaim(uint256 indexed matchId, address creator, address opponent);
+    event NameSet(address indexed user, string name);
 
     //OBJECTS
     enum MatchStatus { 
