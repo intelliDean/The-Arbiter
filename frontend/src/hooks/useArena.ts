@@ -100,12 +100,23 @@ export const useArena = () => {
             const startIndex = Math.max(0, nextMatchId - fetchLimit);
             const statusMap = ['Pending', 'Active', 'Settled', 'Cancelled', 'Draw'];
 
-            const matchPromises = [];
-            for (let i = startIndex; i < nextMatchId; i++) {
-                matchPromises.push(contract.matches(i));
+            const results = [];
+            const batchSize = 10;
+            for (let i = startIndex; i < nextMatchId; i += batchSize) {
+                const batchPromises = [];
+                const end = Math.min(i + batchSize, nextMatchId);
+                for (let j = i; j < end; j++) {
+                    batchPromises.push(contract.matches(j));
+                }
+                const batchResults = await Promise.all(batchPromises);
+                results.push(...batchResults);
+
+                // Small delay to prevent hitting the 25/sec rate limit
+                if (i + batchSize < nextMatchId) {
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
             }
 
-            const results = await Promise.all(matchPromises);
             let matchesData: Match[] = results.map(match => ({
                 id: Number(match[0]),
                 creator: match[1],

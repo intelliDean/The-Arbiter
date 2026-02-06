@@ -54,8 +54,11 @@ export const parseError = (err: any): string => {
     }
 
     // Network or Provider issues
-    if (errorString.includes('network-error') || errorString.includes('could not coalesce error') || errorString.includes('request limit reached')) {
-        return 'Network/RPC error. The request limit may have been reached. Please try again in 10 seconds.';
+    if (errorString.includes('network-error') ||
+        errorString.includes('could not coalesce error') ||
+        errorString.includes('request limit reached') ||
+        errorString.includes('missing revert data')) {
+        return 'Network/RPC error. The request limit may have been reached or the node is lagging. Please try again in a few seconds.';
     }
 
     // Fallback to message or reason if available, otherwise generic
