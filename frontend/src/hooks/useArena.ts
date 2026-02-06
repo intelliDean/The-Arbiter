@@ -73,6 +73,7 @@ export const useArena = () => {
     const [pendingWithdrawal, setPendingWithdrawal] = useState<string>('0');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showHistory, setShowHistory] = useState(false);
 
     const getContract = useCallback(async (needsSigner = false) => {
         if (!publicClient) throw new Error('Public client not available');
@@ -94,8 +95,9 @@ export const useArena = () => {
             const contract = await getContract();
             const nextMatchId = Number(await contract.nextMatchId());
 
-            // Only fetch the last 20 matches to avoid RPC rate limits and long load times
-            const startIndex = Math.max(0, nextMatchId - 20);
+            // Scan the last 50 matches.
+            const fetchLimit = 50;
+            const startIndex = Math.max(0, nextMatchId - fetchLimit);
             const statusMap = ['Pending', 'Active', 'Settled', 'Cancelled', 'Draw'];
 
             const matchPromises = [];
@@ -104,7 +106,7 @@ export const useArena = () => {
             }
 
             const results = await Promise.all(matchPromises);
-            const matchesData: Match[] = results.map(match => ({
+            let matchesData: Match[] = results.map(match => ({
                 id: Number(match[0]),
                 creator: match[1],
                 opponent: match[2],
@@ -117,12 +119,17 @@ export const useArena = () => {
                 targetNumber: Number(match[9]),
             }));
 
+            // If not showing history, filter out completed/cancelled matches
+            if (!showHistory) {
+                matchesData = matchesData.filter(m => m.status === 'Pending' || m.status === 'Active');
+            }
+
             setMatches(matchesData.reverse()); // Show newest first
         } catch (err: any) {
             console.error('Error fetching matches:', err);
             setError(err.message);
         }
-    }, [publicClient, getContract]);
+    }, [publicClient, getContract, showHistory]);
 
     const fetchPendingWithdrawal = useCallback(async () => {
         if (!publicClient || !account) return;
@@ -287,5 +294,7 @@ export const useArena = () => {
         cancelMatch,
         emergencyClaim,
         refreshMatches: fetchMatches,
+        showHistory,
+        setShowHistory,
     };
 };

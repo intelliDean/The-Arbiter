@@ -21,11 +21,11 @@ const App: React.FC = () => {
     pendingWithdrawal,
     isLoading,
     error: arenaError,
-    createMatch,
-    joinMatch,
     withdraw,
     cancelMatch,
-    emergencyClaim
+    emergencyClaim,
+    showHistory,
+    setShowHistory
   } = useArena();
 
   const [currentTime, setCurrentTime] = useState(Math.floor(Date.now() / 1000));
@@ -225,16 +225,33 @@ const App: React.FC = () => {
         )}
 
         <section className="dashboard-controls">
-          <div className="filter-tabs">
-            {['All', 'Pending', 'Active', 'Settled', 'Cancelled'].map((status) => (
-              <button
-                key={status}
-                className={`tab-btn ${filterStatus === status ? 'active' : ''}`}
-                onClick={() => setFilterStatus(status as any)}
-              >
-                {status}
-              </button>
-            ))}
+          <div className="filter-scroll-wrapper">
+            <div className="filter-tabs">
+              {(showHistory ? ['All', 'Pending', 'Active', 'Settled', 'Cancelled'] : ['All', 'Pending', 'Active']).map((status) => (
+                <button
+                  key={status}
+                  className={`tab-btn ${filterStatus === status ? 'active' : ''}`}
+                  onClick={() => setFilterStatus(status as any)}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+            <div className="history-toggle-wrapper">
+              <label className="toggle-label">
+                <input
+                  type="checkbox"
+                  checked={showHistory}
+                  onChange={(e) => {
+                    setShowHistory(e.target.checked);
+                    if (!e.target.checked && (filterStatus === 'Settled' || filterStatus === 'Cancelled')) {
+                      setFilterStatus('All');
+                    }
+                  }}
+                />
+                <span className="toggle-text">Show Settled History</span>
+              </label>
+            </div>
           </div>
           <button
             className="btn"
