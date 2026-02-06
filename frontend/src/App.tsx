@@ -21,6 +21,8 @@ const App: React.FC = () => {
     pendingWithdrawal,
     isLoading,
     error: arenaError,
+    createMatch,
+    joinMatch,
     withdraw,
     cancelMatch,
     emergencyClaim,
