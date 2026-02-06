@@ -25,7 +25,7 @@ with open(abi_path, "r") as f:
 w3 = Web3(Web3.HTTPProvider(RPC_URL))
 contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=ABI)
 
-def settle_match(match_id, winner_address):
+def settle_match(match_id, winner_address, target_number):
     """
     Settle a match by declaring the winner.
     """
@@ -33,7 +33,7 @@ def settle_match(match_id, winner_address):
         print("❌ Error: PRIVATE_KEY not configured correctly in .env or environment variables.")
         return
 
-    print(f"⚖️  Settling match {match_id} with winner {winner_address}...")
+    print(f"⚖️  Settling match {match_id} with winner {winner_address} (Target: {target_number})...")
     
     try:
         nonce = w3.eth.get_transaction_count(REFEREE_ADDRESS)
@@ -45,7 +45,7 @@ def settle_match(match_id, winner_address):
         # Monad Testnet Chain ID
         chain_id = 10143
         
-        tx = contract.functions.settleMatch(match_id, winner_address).build_transaction({
+        tx = contract.functions.settleMatch(match_id, winner_address, target_number).build_transaction({
             'from': REFEREE_ADDRESS,
             'nonce': nonce,
             'gas': 300000,
@@ -143,18 +143,31 @@ def poll_for_matches(poll_interval=5):
                             print(f"   Match ID: {match_id}")
                             print(f"   Opponent: {opponent}")
                             
-                            # Fetch match details
+                            # Fetch match details (now with guesses)
                             match_data = contract.functions.matches(match_id).call()
                             creator = match_data[1]
                             stake = match_data[3]
+                            creator_guess = match_data[8]
+                            opponent_guess = match_data[9]
                             
-                            print(f"   Creator: {creator}")
+                            print(f"   Creator: {creator} (Guess: {creator_guess})")
+                            print(f"   Opponent: {opponent} (Guess: {opponent_guess})")
                             print(f"   Stake: {w3.from_wei(stake, 'ether')} MON")
                             
-                            # Simulate and settle (isolated try-block)
+                            # Calculate the winner (Guessing Logic)
                             try:
-                                winner = simulate_game_outcome(creator, opponent)
-                                settle_match(match_id, winner)
+                                print("🎮 Calculating game outcome...")
+                                target_number = random.randint(1, 100)
+                                print(f"🎯 Target Number: {target_number}")
+
+                                diff_creator = abs(creator_guess - target_number)
+                                diff_opponent = abs(opponent_guess - target_number)
+
+                                winner = creator if diff_creator <= diff_opponent else opponent
+                                print(f"🏆 Winner determined: {winner} (Diff: {min(diff_creator, diff_opponent)})")
+
+                                # Settle with target number
+                                settle_match(match_id, winner, target_number)
                                 processed_matches.add(match_id)
                             except Exception as settlement_err:
                                 print(f"⚠️  Settlement error for match {match_id}: {settlement_err}")

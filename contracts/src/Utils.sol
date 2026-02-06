@@ -19,12 +19,13 @@ library Utils {
     error NOTHING_TO_WITHDRAW();
     error ONLY_OWNER();
     error REENTRANCY();
+    error INVALID_GUESS();
 
 
     //EVENTS
-    event MatchCreated(uint256 indexed matchId, address creator, uint256 stake, address referee);
-    event MatchJoined(uint256 indexed matchId, address opponent);
-    event MatchSettled(uint256 indexed matchId, address winner, uint256 prize, uint256 fee);
+    event MatchCreated(uint256 indexed matchId, address creator, uint256 stake, address referee, uint256 guess);
+    event MatchJoined(uint256 indexed matchId, address opponent, uint256 guess);
+    event MatchSettled(uint256 indexed matchId, address winner, uint256 prize, uint256 fee, uint256 targetNumber);
     event MatchCancelled(uint256 indexed matchId);
     event WinningsWithdrawn(address indexed player, uint256 amount);
     event FeesWithdrawn(address indexed owner, uint256 amount);
@@ -47,5 +48,7 @@ library Utils {
         MatchStatus status;
         address winner;
         uint256 lastUpdate;
+        uint256 creatorGuess;
+        uint256 opponentGuess;
     }
 }

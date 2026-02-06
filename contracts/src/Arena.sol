@@ -44,9 +44,10 @@ contract Arena {
     /**
      * @dev Create a new match with a specific stake and referee.
      */
-    function createMatch(address _referee) external payable returns (uint256) {
+    function createMatch(address _referee, uint256 _guess) external payable returns (uint256) {
         if (msg.value == 0) revert Utils.MUST_BE_GREATER_THAN_ZERO();
         if (_referee == address(0)) revert Utils.INVALID_REFEREE();
+        if (_guess == 0 || _guess > 100) revert Utils.INVALID_GUESS();
 
         uint256 matchId = nextMatchId++;
         matches[matchId] = Utils.Match({
@@ -57,33 +58,37 @@ contract Arena {
             referee: _referee,
             status: Utils.MatchStatus.Pending,
             winner: address(0),
-            lastUpdate: block.timestamp
+            lastUpdate: block.timestamp,
+            creatorGuess: _guess,
+            opponentGuess: 0
         });
 
-        emit Utils.MatchCreated(matchId, msg.sender, msg.value, _referee);
+        emit Utils.MatchCreated(matchId, msg.sender, msg.value, _referee, _guess);
         return matchId;
     }
 
     /**
      * @dev Join a pending match by matching the stake.
      */
-    function joinMatch(uint256 _matchId) external payable {
+    function joinMatch(uint256 _matchId, uint256 _guess) external payable {
         Utils.Match storage m = matches[_matchId];
         if (m.status != Utils.MatchStatus.Pending) revert Utils.MATCH_NOT_PENDING();
         if (msg.value != m.stake) revert Utils.INCORRECT_STAKE();
         if (msg.sender == m.creator) revert Utils.CANNOT_JOIN_OWN_MATCH();
+        if (_guess == 0 || _guess > 100) revert Utils.INVALID_GUESS();
 
         m.opponent = msg.sender;
+        m.opponentGuess = _guess;
         m.status = Utils.MatchStatus.Active;
         m.lastUpdate = block.timestamp;
 
-        emit Utils.MatchJoined(_matchId, msg.sender);
+        emit Utils.MatchJoined(_matchId, msg.sender, _guess);
     }
 
     /**
      * @dev Settle a match. Winnings are moved to pendingWithdrawals.
      */
-    function settleMatch(uint256 _matchId, address _winner) external {
+    function settleMatch(uint256 _matchId, address _winner, uint256 _targetNumber) external {
         Utils.Match storage m = matches[_matchId];
         if (m.status != Utils.MatchStatus.Active) revert Utils.MATCH_NOT_ACTIVE();
         if (msg.sender != m.referee) revert Utils.ONLY_REFEREE_CAN_SETTLE();
@@ -100,7 +105,7 @@ contract Arena {
         totalFees += fee;
         pendingWithdrawals[_winner] += prize;
 
-        emit Utils.MatchSettled(_matchId, _winner, prize, fee);
+        emit Utils.MatchSettled(_matchId, _winner, prize, fee, _targetNumber);
     }
 
     /**
@@ -176,8 +181,8 @@ contract Arena {
 
 
 // Deployer: 0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
-// Deployed to: 0xA658Fa34515794c1C38D5Beb7D412E11d50A141C
+// Deployed to: 0xBbcD22fd30EFA3c859f3C30a7224aB257D20b112
 // Transaction hash: 0x3ffcee138ad57991422dd2ca8b2489884f502844b7d746770b5ff5da5891ecc6
 
 
-// cast call 0xA658Fa34515794c1C38D5Beb7D412E11d50A141C "owner()(address)" --rpc-url https://testnet-rpc.monad.xyz
+// cast call 0xBbcD22fd30EFA3c859f3C30a7224aB257D20b112 "owner()(address)" --rpc-url https://testnet-rpc.monad.xyz

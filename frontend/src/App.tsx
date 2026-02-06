@@ -19,23 +19,34 @@ const App: React.FC = () => {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [stakeAmount, setStakeAmount] = useState('0.1');
+  const [guess, setGuess] = useState('50');
 
   const EXPLORER_URL = monadTestnet.blockExplorers.default.url;
 
   const handleCreateMatch = async () => {
     try {
-      const txHash = await createMatch(stakeAmount);
+      const txHash = await createMatch(stakeAmount, parseInt(guess));
       console.log('Match created:', txHash);
       setShowCreateModal(false);
       setStakeAmount('0.1');
+      setGuess('50');
     } catch (err) {
       console.error('Failed to create match:', err);
     }
   };
 
   const handleJoinMatch = async (matchId: number, stake: string) => {
+    const userGuess = prompt("Enter your guess (1-100) to join this arena:", "50");
+    if (!userGuess) return;
+
+    const parsedGuess = parseInt(userGuess);
+    if (isNaN(parsedGuess) || parsedGuess < 1 || parsedGuess > 100) {
+      alert("Invalid guess! Please enter a number between 1 and 100.");
+      return;
+    }
+
     try {
-      const txHash = await joinMatch(matchId, stake);
+      const txHash = await joinMatch(matchId, stake, parsedGuess);
       console.log('Joined match:', txHash);
     } catch (err) {
       console.error('Failed to join match:', err);
@@ -121,6 +132,17 @@ const App: React.FC = () => {
                   placeholder="0.1"
                 />
               </div>
+              <div className="form-group">
+                <label>Your Guess (1-100)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={guess}
+                  onChange={(e) => setGuess(e.target.value)}
+                />
+                <small className="help-text">Closet to the Arbiter's secret number wins!</small>
+              </div>
               <div className="modal-actions">
                 <button
                   className="btn btn-outline"
@@ -168,7 +190,10 @@ const App: React.FC = () => {
                 <div className="players">
                   <div className="player">
                     <span className="label">Creator:</span>
-                    <span className="value">{match.creator.slice(0, 6)}...{match.creator.slice(-4)}</span>
+                    <span className="value">
+                      {match.creator.slice(0, 6)}...{match.creator.slice(-4)}
+                      <span className="guess-tag">({match.creatorGuess})</span>
+                    </span>
                   </div>
                   <div className="player">
                     <span className="label">Opponent:</span>
@@ -177,6 +202,9 @@ const App: React.FC = () => {
                         ? 'Waiting...'
                         : `${match.opponent.slice(0, 6)}...${match.opponent.slice(-4)}`
                       }
+                      {match.opponent !== '0x0000000000000000000000000000000000000000' && (
+                        <span className="guess-tag">({match.opponentGuess})</span>
+                      )}
                     </span>
                   </div>
                   {match.status === 'Settled' && (

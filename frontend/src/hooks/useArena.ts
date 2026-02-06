@@ -12,6 +12,8 @@ export interface Match {
     status: 'Pending' | 'Active' | 'Settled' | 'Cancelled';
     winner: string;
     lastUpdate: number;
+    creatorGuess: number;
+    opponentGuess: number;
 }
 
 // Helper to convert viem client to ethers provider/signer
@@ -80,6 +82,8 @@ export const useArena = () => {
                     status: statusMap[match[5]] as Match['status'],
                     winner: match[6],
                     lastUpdate: Number(match[7]),
+                    creatorGuess: Number(match[8]),
+                    opponentGuess: Number(match[9]),
                 });
             }
 
@@ -102,7 +106,7 @@ export const useArena = () => {
         }
     }, [publicClient, account, getContract]);
 
-    const createMatch = async (stakeAmount: string) => {
+    const createMatch = async (stakeAmount: string, guess: number) => {
         if (!account || !walletClient) throw new Error('Wallet not connected');
 
         try {
@@ -110,7 +114,7 @@ export const useArena = () => {
             setError(null);
 
             const contract = await getContract(true);
-            const tx = await contract.createMatch(REFEREE_ADDRESS, {
+            const tx = await contract.createMatch(REFEREE_ADDRESS, guess, {
                 value: parseEther(stakeAmount),
             });
 
@@ -126,7 +130,7 @@ export const useArena = () => {
         }
     };
 
-    const joinMatch = async (matchId: number, stakeAmount: string) => {
+    const joinMatch = async (matchId: number, stakeAmount: string, guess: number) => {
         if (!account || !walletClient) throw new Error('Wallet not connected');
 
         try {
@@ -134,7 +138,7 @@ export const useArena = () => {
             setError(null);
 
             const contract = await getContract(true);
-            const tx = await contract.joinMatch(matchId, {
+            const tx = await contract.joinMatch(matchId, guess, {
                 value: parseEther(stakeAmount),
             });
 

@@ -211,3 +211,19 @@
 .match-id:hover {
   color: var(--primary-color);
 }
+.guess-tag {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  margin-left: 0.5rem;
+  color: #a855f7;
+  font-weight: 700;
+}
+
+.help-text {
+  display: block;
+  margin-top: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-style: italic;
+}
