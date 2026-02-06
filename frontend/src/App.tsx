@@ -491,7 +491,7 @@ const App: React.FC = () => {
                       <button className="btn btn-outline full-width disabled">
                         Match In Progress
                       </button>
-                      {currentTime > match.lastUpdate + 86400 && (
+                      {currentTime > match.lastUpdate + 86400 + 60 && (
                         <button
                           className="btn btn-danger btn-sm full-width"
                           style={{ marginTop: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)' }}
