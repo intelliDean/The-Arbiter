@@ -17,16 +17,32 @@ export const monadTestnet = defineChain({
     testnet: true,
 });
 
-// Contract addresses from environment variables
-export const ARENA_CONTRACT_ADDRESS = import.meta.env.VITE_ARENA_CONTRACT_ADDRESS || '0xAf4e58B7e9B6f95697E454224825A4539Ad08991';
+// Normalized address helper
+const normalizeAddress = (address: string | undefined, fallback: string): `0x${string}` => {
+    return (address ? address.trim() : fallback).toLowerCase() as `0x${string}`;
+};
+
+// Contract addresses - lowercased to avoid checksum validation errors at module load time
+export const ARENA_CONTRACT_ADDRESS = normalizeAddress(
+    import.meta.env.VITE_ARENA_CONTRACT_ADDRESS,
+    '0xaf4e58b7e9b6f95697e454224825a4539ad08991'
+);
 export const ARENA_ABI = ArenaArtifact.abi;
-export const PROFILES_CONTRACT_ADDRESS = import.meta.env.VITE_PROFILES_CONTRACT_ADDRESS || '0xD2d17E03E4F0EaeAfAdB542869258dF0d428C800';
+
+export const PROFILES_CONTRACT_ADDRESS = normalizeAddress(
+    import.meta.env.VITE_PROFILES_CONTRACT_ADDRESS,
+    '0xd2d17e03e4f0eaeafadb542869258df0d428c800'
+);
 export const PROFILES_ABI = ProfilesArtifact.abi;
-export const REFEREE_ADDRESS = '0xF2E7E2f51D7C9eEa9B0313C2eCa12f8E43bD1855';
+
+export const REFEREE_ADDRESS = normalizeAddress(
+    import.meta.env.VITE_REFEREE_ADDRESS,
+    '0xf2e7e2f51d7c9eea9b0313c2eca12f8e43bd1855'
+);
 
 export const config = getDefaultConfig({
     appName: 'The Arbiter',
-    projectId: 'YOUR_PROJECT_ID', // Replace with your RainbowKit project ID
+    projectId: '094f4e690ba870696b28c2c516e69a92',
     chains: [monadTestnet],
     transports: {
         [monadTestnet.id]: http(undefined, {
