@@ -87,10 +87,10 @@ This repository includes custom agentic workflows for deployment and verificatio
 - `/verify-monad`: Contract verification workflow for Monad Explorer/Sourcify.
 
 ---
-## Build with ❤️ on Monad
-- **Michael Dean Oyewole**
+## Built with ❤️ on Monad
+**Michael Dean Oyewole**
 
 ---
 
-## 🛡️ License
+## License
 MIT License. 
