@@ -1,3 +1,7 @@
+---
+description: 
+---
+
 # Railway Deployment - Step by Step Guide
 
 ## Prerequisites
@@ -81,16 +85,14 @@ railway logs
 
 **Expected output:**
 ```
+Persistence layer initialized (SQLite)
 ============================================================
-🤖 THE ARBITER - Autonomous Referee Agent
+🤖 THE ARBITER - Professional Referee Node
+Address:  0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
+Target:   0xAf4E58b7E9b6F95697E454224825a4539AD08991
 ============================================================
-Contract: 0xA658Fa34515794c1C38D5Beb7D412E11d50A141C
-Referee: 0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
-Network: https://testnet-rpc.monad.xyz
-============================================================
-👀 Monitoring blockchain for new matches...
-
-📦 Checking blocks 12345 to 12346...
+Recovery: Scanning from block 11269093...
+🩺 Health check server active on port 8080
 ```
 
 ## Step 8: Test It!
@@ -146,14 +148,6 @@ railway logs
 railway up
 ```
 
-## Cost
-
-Railway gives you **$5 free credit per month**. The referee agent uses minimal resources:
-- ~$0.01/hour = ~$7/month for 24/7
-- For hackathon (few days): ~$0.50 total
-
-Your $5 credit is more than enough! 🎉
-
 ## Alternative: Railway Dashboard
 
 If CLI doesn't work, you can deploy via the web dashboard:
@@ -166,5 +160,3 @@ If CLI doesn't work, you can deploy via the web dashboard:
 6. Deploy!
 
 ---
-
-**Ready to deploy!** Just follow the steps above. Let me know if you hit any issues!
