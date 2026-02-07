@@ -73,6 +73,13 @@ Each component requires specific configuration. Examples are provided in their r
 
 ---
 
+## Deployed Contracts (Monad Testnet)
+
+- **Arena**: [0xAf4E58b7E9b6F95697E454224825a4539AD08991](https://testnet.monadvision.com/address/0xAf4E58b7E9b6F95697E454224825a4539AD08991)
+- **Profiles**: [0xD2d17E03E4F0EaeAfAdB542869258dF0d428C800](https://testnet.monadvision.com/address/0xD2d17E03E4F0EaeAfAdB542869258dF0d428C800)
+
+---
+
 ## Features
 
 - **Decentralized Escrow**: Smart contracts hold stakes securely until the referee settles the match.

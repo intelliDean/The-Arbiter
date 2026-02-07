@@ -7,16 +7,15 @@
 ### Contract Details
 
 - **Contract Name:** Arena (The Arbiter)
+- **Arena Address:** `0xAf4E58b7E9b6F95697E454224825a4539AD08991`
+- **Profiles Address:** `0xD2d17E03E4F0EaeAfAdB542869258dF0d428C800`
 - **Network:** Monad Testnet
 - **Chain ID:** 10143
-- **Deployer Address:** `0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855`
-- **Contract Address:** `0xA658Fa34515794c1C38D5Beb7D412E11d50A141C`
-- **Transaction Hash:** `0x3ffcee138ad57991422dd2ca8b2489884f502844b7d746770b5ff5da5891ecc6`
 
 ### Explorer Links
 
-- **Contract Explorer:** [View on MonadScan](https://testnet.monadscan.com/address/0xa658fa34515794c1c38d5beb7d412e11d50a141c)
-- **Deployment Transaction:** [View Transaction](https://testnet.monadscan.com/tx/0x3ffcee138ad57991422dd2ca8b2489884f502844b7d746770b5ff5da5891ecc6)
+- **Arena Explorer:** [View on MonadScan](https://testnet.monadvision.com/address/0xAf4E58b7E9b6F95697E454224825a4539AD08991)
+- **Profiles Explorer:** [View on MonadScan](https://testnet.monadvision.com/address/0xD2d17E03E4F0EaeAfAdB542869258dF0d428C800)
 
 ### Contract Features
 
@@ -50,19 +49,20 @@ evm_version = "prague"
 
 ```bash
 # Check owner
-cast call 0xA658Fa34515794c1C38D5Beb7D412E11d50A141C "owner()(address)" --rpc-url https://testnet-rpc.monad.xyz
+cast call 0xAf4E58b7E9b6F95697E454224825a4539AD08991 "owner()(address)" --rpc-url https://testnet-rpc.monad.xyz
 
 # Check next match ID
-cast call 0xA658Fa34515794c1C38D5Beb7D412E11d50A141C "nextMatchId()(uint256)" --rpc-url https://testnet-rpc.monad.xyz
+cast call 0xAf4E58b7E9b6F95697E454224825a4539AD08991 "nextMatchId()(uint256)" --rpc-url https://testnet-rpc.monad.xyz
 
 # Create a match (example with 0.1 MON stake)
-cast send 0xA658Fa34515794c1C38D5Beb7D412E11d50A141C "createMatch(address)" <REFEREE_ADDRESS> --value 0.1ether --private-key <YOUR_PRIVATE_KEY> --rpc-url https://testnet-rpc.monad.xyz
+cast send 0xAf4E58b7E9b6F95697E454224825a4539AD08991 "createMatch(address)" <REFEREE_ADDRESS> --value 0.1ether --private-key <YOUR_PRIVATE_KEY> --rpc-url https://testnet-rpc.monad.xyz
 ```
 
 #### Using Web3 Libraries
 
 ```javascript
-const ARENA_ADDRESS = "0xA658Fa34515794c1C38D5Beb7D412E11d50A141C";
+const ARENA_ADDRESS = "0xAf4E58b7E9b6F95697E454224825a4539AD08991";
+const PROFILES_ADDRESS = "0xD2d17E03E4F0EaeAfAdB542869258dF0d428C800";
 const RPC_URL = "https://testnet-rpc.monad.xyz";
 const CHAIN_ID = 10143;
 ```
