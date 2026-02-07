@@ -16,6 +16,7 @@ export const monadTestnet = defineChain({
     },
     testnet: true,
 });
+// testnet.monadvision.com
 
 // Normalized address helper
 const normalizeAddress = (address: string | undefined, fallback: string): `0x${string}` => {
