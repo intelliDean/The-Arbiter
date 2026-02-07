@@ -1,4 +1,5 @@
-# The Arbiter: Decentralized Wagering & Automated Settlement
+# The Arbiter
+# A Decentralized Wagering & Automated Settlement
 
 **The Arbiter** is the execution layer for trustless competitive gaming — an autonomous AI referee enabling high-speed competition, secure wagering, and verifiable settlement to unlock scalable wagering economies on Monad.
 
