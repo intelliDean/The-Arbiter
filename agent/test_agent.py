@@ -47,7 +47,7 @@ def create_match(player_key, player_addr, stake_eth, guess=50):
     tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
     receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
     
-    # Get match ID from event
+    # Get match ID from event (snake_case for v6 compatibility)
     match_id = contract.events.MatchCreated().process_receipt(receipt)[0]['args']['matchId']
     print(f"✅ Match created! ID: {match_id}")
     return match_id

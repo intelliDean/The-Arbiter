@@ -1,0 +1,61 @@
+2026-02-07 15:38:07,947 | INFO     | Referee | Persistence layer initialized (SQLite)
+2026-02-07 15:38:07,947 | INFO     | Referee | ============================================================
+2026-02-07 15:38:07,947 | INFO     | Referee | 🤖 THE ARBITER - Professional Referee Node
+2026-02-07 15:38:07,947 | INFO     | Referee | Address:  0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
+2026-02-07 15:38:07,947 | INFO     | Referee | Target:   0xAf4E58b7E9b6F95697E454224825a4539AD08991
+2026-02-07 15:38:07,947 | INFO     | Referee | ============================================================
+2026-02-07 15:38:07,949 | INFO     | Referee | 🩺 Health check server active on port 8080
+2026-02-07 15:38:08,611 | INFO     | Referee | Recovery: Scanning from block 11267825...
+2026-02-07 15:38:08,750 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:38:13,891 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:38:20,544 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:38:25,690 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:38:30,866 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:38:33,136 | INFO     | Referee | Persistence layer initialized (SQLite)
+2026-02-07 15:38:33,136 | INFO     | Referee | ============================================================
+2026-02-07 15:38:33,136 | INFO     | Referee | 🤖 THE ARBITER - Professional Referee Node
+2026-02-07 15:38:33,136 | INFO     | Referee | Address:  0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
+2026-02-07 15:38:33,136 | INFO     | Referee | Target:   0xAf4E58b7E9b6F95697E454224825a4539AD08991
+2026-02-07 15:38:33,136 | INFO     | Referee | ============================================================
+2026-02-07 15:38:33,718 | INFO     | Referee | Recovery: Scanning from block 11267888...
+2026-02-07 15:38:36,073 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:38:36,688 | ERROR    | Referee | Main loop exception: 413 Client Error: Request Entity Too Large for url: https://testnet-rpc.monad.xyz/
+2026-02-07 15:38:37,258 | INFO     | Referee | Received signal 15. Finalizing current task before shutdown...
+2026-02-07 15:38:41,219 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:38:46,363 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:38:51,527 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:38:56,758 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:39:01,903 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:39:08,636 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:39:16,931 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:39:22,665 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:39:28,810 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:39:35,056 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:39:41,394 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:39:48,369 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:40:24,015 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:40:29,226 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:40:34,449 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:40:39,585 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:40:45,203 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:40:52,190 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:40:59,341 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:41:06,090 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:41:12,060 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:41:17,354 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:41:22,684 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:41:28,618 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:41:33,841 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:41:39,063 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:41:44,199 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:41:49,334 | ERROR    | Referee | Main loop exception: ContractEvent.get_logs() got an unexpected keyword argument 'fromBlock'. Did you mean 'from_block'?
+2026-02-07 15:41:53,840 | INFO     | Referee | Received signal 15. Finalizing current task before shutdown...
+2026-02-07 15:41:54,844 | INFO     | Referee | Persistence layer initialized (SQLite)
+2026-02-07 15:41:54,845 | INFO     | Referee | ============================================================
+2026-02-07 15:41:54,845 | INFO     | Referee | 🤖 THE ARBITER - Professional Referee Node
+2026-02-07 15:41:54,845 | INFO     | Referee | Address:  0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855
+2026-02-07 15:41:54,846 | INFO     | Referee | Target:   0xAf4E58b7E9b6F95697E454224825a4539AD08991
+2026-02-07 15:41:54,846 | INFO     | Referee | ============================================================
+2026-02-07 15:41:54,850 | INFO     | Referee | 🩺 Health check server active on port 8080
+2026-02-07 15:41:55,323 | INFO     | Referee | Recovery: Scanning from block 11268393...
+2026-02-07 15:42:03,887 | INFO     | Referee | Received signal 15. Finalizing current task before shutdown...
