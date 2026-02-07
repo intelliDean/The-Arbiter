@@ -133,8 +133,14 @@ export const useArena = () => {
             }));
 
             // If not showing history, filter out completed/cancelled matches
+            // UNLESS they finished in the last 5 minutes (300 seconds)
             if (!showHistory) {
-                matchesData = matchesData.filter(m => m.status === 'Pending' || m.status === 'Active');
+                const now = Math.floor(Date.now() / 1000);
+                matchesData = matchesData.filter(m =>
+                    m.status === 'Pending' ||
+                    m.status === 'Active' ||
+                    (now - m.lastUpdate < 300)
+                );
             }
 
             setMatches(matchesData.reverse()); // Show newest first
