@@ -1,10 +1,10 @@
-# ⚖️ The Arbiter: Decentralized Wagering & Automated Settlement
+# The Arbiter: Decentralized Wagering & Automated Settlement
 
 **The Arbiter** is the execution layer for trustless competitive gaming — an autonomous AI referee enabling high-speed competition, secure wagering, and verifiable settlement to unlock scalable wagering economies on Monad.
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 The following diagram illustrates the interaction between the three core components:
 
@@ -20,7 +20,7 @@ graph TD
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 | Component | Technology | Description |
 | :--- | :--- | :--- |
@@ -30,7 +30,7 @@ graph TD
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Smart Contracts (`/contracts`)
 Install Foundry and deploy the contracts:
@@ -63,7 +63,7 @@ npm run dev
 
 ---
 
-## 🔐 Environment Variables
+## Environment Variables
 
 Each component requires specific configuration. Examples are provided in their respective `.env.example` files.
 
@@ -73,20 +73,24 @@ Each component requires specific configuration. Examples are provided in their r
 
 ---
 
-## ✨ Features
+## Features
 
 - **Decentralized Escrow**: Smart contracts hold stakes securely until the referee settles the match.
 - **Agent Persistence**: The referee agent uses SQLite to track blocks and settled matches, ensuring zero downtime recovery.
 - **Robust Gas Management**: Automated transaction retries and adaptive gas pricing for the Monad ecosystem.
 - **Premium User Experience**: Wallet-ready frontend with "Safe-Loading" address normalization to prevent checksum crashes.
 
-## 📜 Workflows
+## Workflows
 
 This repository includes custom agentic workflows for deployment and verification:
 - `/deploy-monad`: Automated deployment script for Foundry.
 - `/verify-monad`: Contract verification workflow for Monad Explorer/Sourcify.
 
 ---
+## Build with ❤️ on Monad
+- **Michael Dean Oyewole**
+
+---
 
 ## 🛡️ License
-MIT License. Created with 🏗️ on Monad.
+MIT License. 
