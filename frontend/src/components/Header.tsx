@@ -21,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="header-left">
                 <div className="logo">
                     <img src="/logo.png" alt="THE ARBITER" className="logo-img" />
+                    <span className="brand-name">THE ARBITER</span>
                 </div>
                 <div className="search-wrapper">
                     <input

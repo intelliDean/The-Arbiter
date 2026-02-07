@@ -24,5 +24,7 @@ frontend/.env.production.local
 .DS_Store
 Thumbs.db
 
+text.txt
 
-# https://moltiverse.dev/
+
+
