@@ -164,6 +164,48 @@ export const useArena = () => {
         }
     }, [publicClient, account, getContract]);
 
+    // Helper to update a single match in state
+    const upsertMatch = useCallback((updatedMatch: Match) => {
+        setMatches(prev => {
+            const index = prev.findIndex(m => m.id === updatedMatch.id);
+            if (index !== -1) {
+                // Update existing
+                const newMatches = [...prev];
+                newMatches[index] = updatedMatch;
+                return newMatches;
+            } else {
+                // Add new (keep newest at front)
+                return [updatedMatch, ...prev];
+            }
+        });
+    }, []);
+
+    // Helper to fetch and update a single match detail
+    const refreshSingleMatch = useCallback(async (matchId: number) => {
+        try {
+            const contract = await getContract();
+            const match = await contract.matches(matchId);
+            const statusMap = ['Pending', 'Active', 'Settled', 'Cancelled', 'Draw'];
+
+            const updatedMatch: Match = {
+                id: Number(match[0]),
+                creator: match[1],
+                opponent: match[2],
+                stake: formatEther(match[3]),
+                status: statusMap[match[4]] as Match['status'],
+                winner: match[5],
+                lastUpdate: Number(match[6]),
+                creatorGuess: Number(match[7]),
+                opponentGuess: Number(match[8]),
+                targetNumber: Number(match[9]),
+            };
+
+            upsertMatch(updatedMatch);
+        } catch (err) {
+            console.error(`Error refreshing match ${matchId}:`, err);
+        }
+    }, [getContract, upsertMatch]);
+
     const createMatch = async (stakeAmount: string, guess: number) => {
         if (!account || !walletClient) throw new Error('Wallet not connected');
 
@@ -288,7 +330,40 @@ export const useArena = () => {
         }
     }, [publicClient, account, fetchMatches, fetchPendingWithdrawal]);
 
-    // Poll for updates every 10 seconds
+    // Setup Event Listeners for real-time updates
+    useEffect(() => {
+        if (!publicClient) return;
+
+        // Listen for all relevant arena events
+        const unwatch = publicClient.watchContractEvent({
+            address: ARENA_CONTRACT_ADDRESS as `0x${string}`,
+            abi: ARENA_ABI,
+            onLogs: (logs: any) => {
+                logs.forEach((log: any) => {
+                    const { eventName, args } = log;
+                    const matchId = args.matchId ? Number(args.matchId) : null;
+
+                    console.log(`Arena Event detected: ${eventName}`, args);
+
+                    if (matchId !== null) {
+                        // For any match-specific event, trigger a re-fetch of just that match
+                        refreshSingleMatch(matchId);
+
+                        // If it's a settlement, also refresh the withdrawal balance
+                        if (eventName === 'MatchSettled' || eventName === 'EmergencyClaim') {
+                            fetchPendingWithdrawal();
+                        }
+                    }
+                });
+            }
+        });
+
+        return () => {
+            unwatch();
+        };
+    }, [publicClient, refreshSingleMatch, fetchPendingWithdrawal]);
+
+    // Poll for updates every 60 seconds as a fallback (reduced from 10s)
     useEffect(() => {
         if (!publicClient) return;
 
@@ -297,7 +372,7 @@ export const useArena = () => {
             if (account) {
                 fetchPendingWithdrawal();
             }
-        }, 10000);
+        }, 60000);
 
         return () => clearInterval(interval);
     }, [publicClient, account, fetchMatches, fetchPendingWithdrawal]);
