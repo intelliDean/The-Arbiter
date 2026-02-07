@@ -17,9 +17,10 @@ export const monadTestnet = defineChain({
     testnet: true,
 });
 
-export const ARENA_CONTRACT_ADDRESS = '0xaf4e58b7e9b6f95697e454224825a4539ad08991' as const;
+// Contract addresses from environment variables
+export const ARENA_CONTRACT_ADDRESS = import.meta.env.VITE_ARENA_CONTRACT_ADDRESS || '0xBA86755490b6aA8D4906f331F905785098Ba1471';
 export const ARENA_ABI = ArenaArtifact.abi;
-export const PROFILES_CONTRACT_ADDRESS = '0xd2d17e03e4f0eaeafadb542869258df0d428c800' as const;
+export const PROFILES_CONTRACT_ADDRESS = import.meta.env.VITE_PROFILES_CONTRACT_ADDRESS || '0x26417711902E09FE567C745679FA870A98ba1454';
 export const PROFILES_ABI = ProfilesArtifact.abi;
 export const REFEREE_ADDRESS = '0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855';
 

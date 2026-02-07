@@ -7,6 +7,9 @@ import { WagmiProvider } from 'wagmi'
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { config } from './config'
+import { NotificationProvider } from './context/NotificationContext'
+import { ErrorBoundary } from './components/ErrorBoundary'
+
 
 const queryClient = new QueryClient()
 
@@ -15,7 +18,11 @@ createRoot(document.getElementById('root')!).render(
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={darkTheme()}>
-          <App />
+          <NotificationProvider>
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+          </NotificationProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
