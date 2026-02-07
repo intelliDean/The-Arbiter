@@ -85,10 +85,11 @@ const App: React.FC = () => {
 
   const handleCreateMatch = async () => {
     try {
-      const txHash = await createMatch(stakeAmount, parseInt(guess));
+      const txHash = await createMatch(stakeAmount, parseInt(guess), () => {
+        setShowCreateModal(false);
+      });
       addNotification('Match created successfully!', 'success');
       console.log('Match created:', txHash);
-      setShowCreateModal(false);
       setStakeAmount('0.1');
       setGuess('50');
     } catch (err: any) {
@@ -112,10 +113,11 @@ const App: React.FC = () => {
     }
 
     try {
-      const txHash = await joinMatch(selectedMatch.id, selectedMatch.stake, parsedGuess);
+      const txHash = await joinMatch(selectedMatch.id, selectedMatch.stake, parsedGuess, () => {
+        setShowJoinModal(false);
+      });
       addNotification('Joined match successfully!', 'success');
       console.log('Joined match:', txHash);
-      setShowJoinModal(false);
       setSelectedMatch(null);
       setJoinGuess('50');
     } catch (err: any) {

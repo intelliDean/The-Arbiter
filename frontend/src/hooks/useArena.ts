@@ -206,7 +206,7 @@ export const useArena = () => {
         }
     }, [getContract, upsertMatch]);
 
-    const createMatch = async (stakeAmount: string, guess: number) => {
+    const createMatch = async (stakeAmount: string, guess: number, onSigned?: () => void) => {
         if (!account || !walletClient) throw new Error('Wallet not connected');
 
         try {
@@ -217,6 +217,8 @@ export const useArena = () => {
             const tx = await contract.createMatch(guess, {
                 value: parseEther(stakeAmount),
             });
+
+            if (onSigned) onSigned();
 
             await tx.wait();
             await fetchMatches();
@@ -230,7 +232,7 @@ export const useArena = () => {
         }
     };
 
-    const joinMatch = async (matchId: number, stakeAmount: string, guess: number) => {
+    const joinMatch = async (matchId: number, stakeAmount: string, guess: number, onSigned?: () => void) => {
         if (!account || !walletClient) throw new Error('Wallet not connected');
 
         try {
@@ -241,6 +243,8 @@ export const useArena = () => {
             const tx = await contract.joinMatch(matchId, guess, {
                 value: parseEther(stakeAmount),
             });
+
+            if (onSigned) onSigned();
 
             await tx.wait();
             await fetchMatches();
