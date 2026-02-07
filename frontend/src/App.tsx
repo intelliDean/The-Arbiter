@@ -64,9 +64,9 @@ const App: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<{ id: number, stake: string } | null>(null);
-  const [stakeAmount, setStakeAmount] = useState('0.1');
-  const [guess, setGuess] = useState('50');
-  const [joinGuess, setJoinGuess] = useState('50');
+  const [stakeAmount, setStakeAmount] = useState('');
+  const [guess, setGuess] = useState('');
+  const [joinGuess, setJoinGuess] = useState('');
   const [filterStatus, setFilterStatus] = useState<'All' | 'Pending' | 'Active' | 'Settled' | 'Cancelled'>('All');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,13 +85,16 @@ const App: React.FC = () => {
 
   const handleCreateMatch = async () => {
     try {
-      const txHash = await createMatch(stakeAmount, parseInt(guess), () => {
+      const finalStake = stakeAmount.trim() === '' ? '0.1' : stakeAmount;
+      const finalGuess = guess.trim() === '' ? 50 : parseInt(guess);
+
+      const txHash = await createMatch(finalStake, finalGuess, () => {
         setShowCreateModal(false);
       });
       addNotification('Match created successfully!', 'success');
       console.log('Match created:', txHash);
-      setStakeAmount('0.1');
-      setGuess('50');
+      setStakeAmount('');
+      setGuess('');
     } catch (err: any) {
       console.error('Failed to create match:', err);
       addNotification(parseError(err), 'error');
@@ -113,13 +116,14 @@ const App: React.FC = () => {
     }
 
     try {
-      const txHash = await joinMatch(selectedMatch.id, selectedMatch.stake, parsedGuess, () => {
+      const finalGuess = joinGuess.trim() === '' ? 50 : parseInt(joinGuess);
+      const txHash = await joinMatch(selectedMatch.id, selectedMatch.stake, finalGuess, () => {
         setShowJoinModal(false);
       });
       addNotification('Joined match successfully!', 'success');
       console.log('Joined match:', txHash);
       setSelectedMatch(null);
-      setJoinGuess('50');
+      setJoinGuess('');
     } catch (err: any) {
       console.error('Failed to join match:', err);
       addNotification(parseError(err), 'error');
@@ -285,6 +289,7 @@ const App: React.FC = () => {
                   max="100"
                   value={guess}
                   onChange={(e) => setGuess(e.target.value)}
+                  placeholder="50"
                 />
                 <small className="help-text">Closet to the Arbiter's secret number wins!</small>
               </div>
@@ -298,7 +303,7 @@ const App: React.FC = () => {
                 <button
                   className="btn"
                   onClick={handleCreateMatch}
-                  disabled={isLoading || !stakeAmount || parseFloat(stakeAmount) <= 0}
+                  disabled={isLoading}
                 >
                   {isLoading ? 'Creating...' : 'Create Match'}
                 </button>
@@ -323,6 +328,7 @@ const App: React.FC = () => {
                   max="100"
                   value={joinGuess}
                   onChange={(e) => setJoinGuess(e.target.value)}
+                  placeholder="50"
                   autoFocus
                 />
                 <small className="help-text">Your guess determines your fate. Choose wisely!</small>
