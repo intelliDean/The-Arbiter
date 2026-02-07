@@ -18,11 +18,11 @@ export const monadTestnet = defineChain({
 });
 
 // Contract addresses from environment variables
-export const ARENA_CONTRACT_ADDRESS = import.meta.env.VITE_ARENA_CONTRACT_ADDRESS || '0xBa86755490B6aa8D4906F331F905785098Ba1471';
+export const ARENA_CONTRACT_ADDRESS = import.meta.env.VITE_ARENA_CONTRACT_ADDRESS || '0xba86755490b6aa8d4906f331f905785098ba1471';
 export const ARENA_ABI = ArenaArtifact.abi;
-export const PROFILES_CONTRACT_ADDRESS = import.meta.env.VITE_PROFILES_CONTRACT_ADDRESS || '0x26417711902e09Fe567c745679fa870A98ba1454';
+export const PROFILES_CONTRACT_ADDRESS = import.meta.env.VITE_PROFILES_CONTRACT_ADDRESS || '0x26417711902e09fe567c745679fa870a98ba1454';
 export const PROFILES_ABI = ProfilesArtifact.abi;
-export const REFEREE_ADDRESS = '0xF2E7E2f51D7C9eEa9B0313C2eCa12f8e43bd1855';
+export const REFEREE_ADDRESS = '0xf2e7e2f51d7c9eea9b0313c2eca12f8e43bd1855';
 
 export const config = getDefaultConfig({
     appName: 'The Arbiter',
