@@ -79,6 +79,11 @@ Each component requires specific configuration. Examples are provided in their r
 - **Profiles**: [0xD2d17E03E4F0EaeAfAdB542869258dF0d428C800](https://testnet.monadvision.com/address/0xD2d17E03E4F0EaeAfAdB542869258dF0d428C800)
 
 ---
+## Deployed App (Vercel)
+
+- **Frontend**: [The Arbiter](https://the-arbiter.vercel.app/)
+
+---
 
 ## Features
 
