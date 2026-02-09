@@ -81,7 +81,7 @@ Each component requires specific configuration. Examples are provided in their r
 ---
 ## Deployed App (Vercel)
 
-- **Frontend**: [The Arbiter](https://the-arbiter.vercel.app/)
+- **Frontend**: [The Arbiter](https://the-arbiter-three.vercel.app/)
 
 ---
 
